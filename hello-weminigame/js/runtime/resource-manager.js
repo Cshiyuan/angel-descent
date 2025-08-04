@@ -40,8 +40,8 @@ export default class ResourceManager {
     this.platformPaths = {
       normal: 'images/platforms/platform_normal.png',
       fragile: 'images/platforms/platform_fragile.png',
-      moving: 'images/platforms/platform_moving.png',
-      disappearing: 'images/platforms/platform_disappear.png', // 消失平台专用图像
+      moving: 'images/platforms/platform_normal.png', // 复用普通平台，渲染时添加金色覆盖
+      disappearing: 'images/platforms/platform_normal.png', // 复用普通平台，渲染时添加粉色覆盖
       ice: 'images/platforms/platform_ice.png',
       bounce: 'images/platforms/platform_bounce.png',
       dangerous: 'images/platforms/platform_danger.png'

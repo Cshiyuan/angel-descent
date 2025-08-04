@@ -1196,6 +1196,9 @@ export default class Platform extends Sprite {
         imageWidth,
         imageHeight
       );
+      
+      // 为特殊平台类型添加颜色覆盖
+      this.applyColorOverlay(ctx, imageX, imageY, imageWidth, imageHeight);
     } else {
       // 回退到纯色渲染
       ctx.fillStyle = this.color;
@@ -1212,6 +1215,50 @@ export default class Platform extends Sprite {
     
     // 重置效果
     ctx.globalAlpha = 1;
+  }
+
+  /**
+   * 为特殊平台类型应用颜色覆盖
+   */
+  applyColorOverlay(ctx, imageX, imageY, imageWidth, imageHeight) {
+    switch (this.platformType) {
+      case PLATFORM_TYPES.DISAPPEARING:
+        ctx.save();
+        ctx.globalCompositeOperation = 'screen';
+        ctx.fillStyle = '#FF0080'; // 极其鲜艳的粉色 (Magenta/Hot Pink)
+        ctx.globalAlpha = 0.8;
+        ctx.fillRect(imageX, imageY, imageWidth, imageHeight);
+        ctx.restore();
+        break;
+        
+      case PLATFORM_TYPES.MOVING:
+        // 金色平台：使用多层渲染强制覆盖灰色
+        ctx.save();
+        
+        // 第一层：白色打底，提亮底色
+        ctx.globalCompositeOperation = 'screen';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.globalAlpha = 0.7;
+        ctx.fillRect(imageX, imageY, imageWidth, imageHeight);
+        
+        // 第二层：金色覆盖
+        ctx.globalCompositeOperation = 'multiply';
+        ctx.fillStyle = '#FFD700';
+        ctx.globalAlpha = 0.9;
+        ctx.fillRect(imageX, imageY, imageWidth, imageHeight);
+        
+        // 第三层：再次金色加强
+        ctx.globalCompositeOperation = 'overlay';
+        ctx.fillStyle = '#FFA500';
+        ctx.globalAlpha = 0.6;
+        ctx.fillRect(imageX, imageY, imageWidth, imageHeight);
+        
+        ctx.restore();
+        break;
+        
+      default:
+        return; // 其他类型不需要颜色覆盖
+    }
   }
 
   /**
