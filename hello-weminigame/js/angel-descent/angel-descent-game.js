@@ -662,6 +662,12 @@ export default class AngelDescentGame {
   handleTouch(e) {
     if (!this.running) return;
     
+    // 如果在游戏胜利状态，点击重新开始游戏
+    if (this.currentState === GAME_STATES.LEVEL_COMPLETE) {
+      this.restart();
+      return;
+    }
+    
     // 如果在新手指引状态，让指引处理触摸事件
     if (this.currentState === GAME_STATES.TUTORIAL) {
       if (this.tutorialOverlay.handleTouch(e)) {
@@ -2168,7 +2174,9 @@ export default class AngelDescentGame {
     this.ctx.fillStyle = themeColors.primaryText;
     this.ctx.font = 'bold 16px Arial, sans-serif';
     this.ctx.textAlign = 'left';
-    this.ctx.fillText(`第 ${this.gameData.currentLayer} 层`, textX, textStartY);
+    // 显示倒数层数：第1层显示为第100层，第100层显示为第1层
+    const displayLayer = this.gameData.maxLayer - this.gameData.currentLayer + 1;
+    this.ctx.fillText(`第 ${displayLayer} 层`, textX, textStartY);
     
     // 渲染主题名称（副标题）
     const themeInfo = this.levelGenerator.getThemeInfo(this.gameData.currentLayer);
@@ -2176,10 +2184,10 @@ export default class AngelDescentGame {
     this.ctx.font = '12px Arial, sans-serif';
     this.ctx.fillText(themeInfo.name, textX, textStartY + lineHeight);
     
-    // 渲染生命值（文字标签）
+    // 渲染法力值（文字标签）
     const livesY = textStartY + lineHeight * 2;
     
-    // 生命值区域背景 - 调整尺寸适应文字标签
+    // 法力值区域背景 - 调整尺寸适应文字标签
     const livesAreaX = textX - 4;
     const livesAreaY = livesY - 18;
     const livesAreaWidth = 75;
@@ -2194,11 +2202,11 @@ export default class AngelDescentGame {
     this.ctx.stroke();
     this.ctx.restore();
     
-    // 绘制生命值标签（文字描述）
+    // 绘制法力值标签（文字描述）
     const labelX = textX + 4;
     const labelY = livesY;
     
-    // 根据生命值变化调整文字颜色和效果
+    // 根据法力值变化调整文字颜色和效果
     let labelColor = '#FFFFFF';
     let labelSize = 14;
     
@@ -2206,28 +2214,28 @@ export default class AngelDescentGame {
       const flashFactor = this.livesDisplayEffect.flashIntensity;
       
       if (this.livesDisplayEffect.changeType === 'gain') {
-        // 获得生命：绿色闪烁
+        // 获得法力：绿色闪烁
         labelColor = `rgb(${Math.floor(255 - 179 * flashFactor)}, 255, ${Math.floor(255 - 155 * flashFactor)})`;
         labelSize = 14 + 3 * flashFactor; // 变大效果
       } else if (this.livesDisplayEffect.changeType === 'lose') {
-        // 失去生命：红色闪烁
+        // 失去法力：红色闪烁
         labelColor = `rgb(255, ${Math.floor(255 * (1-flashFactor))}, ${Math.floor(255 * (1-flashFactor))})`;
         labelSize = 14 + 2 * flashFactor;
       }
     }
     
-    // 绘制"生命"标签
+    // 绘制"法力"标签
     this.ctx.save();
     this.ctx.fillStyle = labelColor;
     this.ctx.font = `bold ${labelSize}px Arial, sans-serif`;
-    this.ctx.fillText('生命', labelX, labelY);
+    this.ctx.fillText('法力', labelX, labelY);
     this.ctx.restore();
     
-    // 绘制生命值文本 - 增强效果
+    // 绘制法力值文本 - 增强效果
     const livesText = `${this.player ? this.player.lives : 0}`;
     this.ctx.save();
     
-    // 根据生命值变化调整文字效果
+    // 根据法力值变化调整文字效果
     let textColor = '#FFFFFF';
     let fontSize = 16;
     
@@ -2235,11 +2243,11 @@ export default class AngelDescentGame {
       const flashFactor = this.livesDisplayEffect.flashIntensity;
       
       if (this.livesDisplayEffect.changeType === 'gain') {
-        // 获得生命：绿色文字
+        // 获得法力：绿色文字
         textColor = `rgb(${Math.floor(255 - 179 * flashFactor)}, 255, ${Math.floor(255 - 155 * flashFactor)})`;
         fontSize = 16 + 4 * flashFactor;
       } else if (this.livesDisplayEffect.changeType === 'lose') {
-        // 失去生命：红色文字
+        // 失去法力：红色文字
         textColor = `rgb(255, ${Math.floor(255 * (1-flashFactor))}, ${Math.floor(255 * (1-flashFactor))})`;
         fontSize = 16 + 2 * flashFactor;
       }
@@ -2247,7 +2255,7 @@ export default class AngelDescentGame {
     
     this.ctx.fillStyle = textColor;
     this.ctx.font = `bold ${fontSize}px Arial, sans-serif`;
-    this.ctx.fillText(livesText, labelX + 45, livesY); // 调整数字位置在"生命"标签后面
+    this.ctx.fillText(livesText, labelX + 45, livesY); // 调整数字位置在"法力"标签后面
     this.ctx.restore();
     
     // 添加装饰性星星粒子效果
@@ -2498,7 +2506,9 @@ export default class AngelDescentGame {
       this.ctx.fillStyle = '#FFFFFF';
       this.ctx.font = '16px Arial';
       this.ctx.fillText('3秒后重新开始', this.canvas.width/2, this.canvas.height/2 + 40);
-      this.ctx.fillText(`最深到达第 ${this.gameData.currentLayer} 层`, this.canvas.width/2, this.canvas.height/2 + 70);
+      // 显示倒数层数：实际第1层显示为第100层
+      const deepestDisplayLayer = this.gameData.maxLayer - this.gameData.currentLayer + 1;
+      this.ctx.fillText(`最深到达第 ${deepestDisplayLayer} 层`, this.canvas.width/2, this.canvas.height/2 + 70);
     }
     
     // 游戏完成提示
@@ -2509,9 +2519,14 @@ export default class AngelDescentGame {
       this.ctx.fillStyle = '#FFD700';
       this.ctx.font = '28px Arial';
       this.ctx.textAlign = 'center';
-      this.ctx.fillText('恭喜通关！', this.canvas.width/2, this.canvas.height/2 - 20);
-      this.ctx.font = '16px Arial';
-      this.ctx.fillText('使命完成！你已成功抵达人间，可以开始帮助众生了！', this.canvas.width/2, this.canvas.height/2 + 20);
+      this.ctx.fillText('✨ 下凡成功！✨', this.canvas.width/2, this.canvas.height/2 - 40);
+      this.ctx.font = '18px Arial';
+      this.ctx.fillStyle = '#FFFFFF';
+      this.ctx.fillText('天使已成功穿越百层天界抵达人间', this.canvas.width/2, this.canvas.height/2 - 5);
+      this.ctx.fillText('可以开始履行救赎众生的神圣使命了！', this.canvas.width/2, this.canvas.height/2 + 20);
+      this.ctx.font = '14px Arial';
+      this.ctx.fillStyle = '#CCCCCC';
+      this.ctx.fillText('点击屏幕重新体验下凡之旅', this.canvas.width/2, this.canvas.height/2 + 60);
     }
   }
 
