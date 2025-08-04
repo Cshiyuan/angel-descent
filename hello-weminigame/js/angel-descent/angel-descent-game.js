@@ -668,6 +668,17 @@ export default class AngelDescentGame {
       return;
     }
     
+    // 如果在游戏失败状态，点击重新开始游戏（与胜利状态保持一致）
+    if (this.currentState === GAME_STATES.GAME_OVER) {
+      // 清除自动重启定时器
+      if (this.restartTimer) {
+        clearTimeout(this.restartTimer);
+        this.restartTimer = null;
+      }
+      this.restart();
+      return;
+    }
+    
     // 如果在新手指引状态，让指引处理触摸事件
     if (this.currentState === GAME_STATES.TUTORIAL) {
       if (this.tutorialOverlay.handleTouch(e)) {
@@ -803,6 +814,9 @@ export default class AngelDescentGame {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
     }
+    
+    // 重置暂停状态，确保游戏可以正常运行
+    this.paused = false;
     
     // 根据是否完成过新手指引来设置重启后的状态
     if (this.hasCompletedTutorial) {
@@ -1416,7 +1430,7 @@ export default class AngelDescentGame {
       // 检查是否需要切换背景主题
       this.updateBackgroundTheme(previousLayer, currentLayer);
       
-      // 检查是否完成游戏
+      // 检查是否完成游戏（当实际层数超过100层时，显示为0层，表示成功下凡到人间）
       if (currentLayer > this.gameData.maxLayer) {
         this.gameComplete();
       }
@@ -1626,7 +1640,7 @@ export default class AngelDescentGame {
    */
   gameComplete() {
     this.currentState = GAME_STATES.LEVEL_COMPLETE;
-    this.pause();
+    this.paused = true; // 暂停游戏循环，但保持LEVEL_COMPLETE状态
     // 使命完成！恭喜成功抵达人间！
   }
 
@@ -2475,8 +2489,8 @@ export default class AngelDescentGame {
     
     // 移除调试信息，保持界面简洁美观
     
-    // 美术风格的暂停界面
-    if (this.paused) {
+    // 美术风格的暂停界面（只在真正暂停时显示，胜利状态不显示）
+    if (this.paused && this.currentState === GAME_STATES.PAUSED) {
       this.renderPauseOverlay();
     }
     
@@ -2505,7 +2519,7 @@ export default class AngelDescentGame {
       // 重启提示和成绩
       this.ctx.fillStyle = '#FFFFFF';
       this.ctx.font = '16px Arial';
-      this.ctx.fillText('3秒后重新开始', this.canvas.width/2, this.canvas.height/2 + 40);
+      this.ctx.fillText('点击屏幕立即重试 或 3秒后自动重新开始', this.canvas.width/2, this.canvas.height/2 + 40);
       // 显示倒数层数：实际第1层显示为第100层
       const deepestDisplayLayer = this.gameData.maxLayer - this.gameData.currentLayer + 1;
       this.ctx.fillText(`最深到达第 ${deepestDisplayLayer} 层`, this.canvas.width/2, this.canvas.height/2 + 70);
