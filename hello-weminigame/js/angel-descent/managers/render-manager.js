@@ -436,26 +436,27 @@ export default class RenderManager {
   renderGameInfoPanel() {
     this.ctx.save();
     
-    // 面板配置
+    // 面板配置 - 优化尺寸，只占用屏幕左侧约1/3宽度
     const panelConfig = {
       x: 15,
       y: 15,
-      width: 160,
-      height: 80,
-      borderRadius: 12,
-      padding: 12
+      width: Math.floor(this.logicalWidth / 3.2),  // 约占屏幕宽度的1/3
+      height: 100,
+      borderRadius: 15,
+      padding: 14
     };
     
     // 获取当前主题颜色
     const currentTheme = this.game.getCurrentBackgroundTheme();
     const themeColors = this.getThemeUIColors(currentTheme);
     
-    // 绘制主面板背景（半透明渐变）
+    // 绘制主面板背景（优化渐变效果）
     const gradient = this.ctx.createLinearGradient(
       panelConfig.x, panelConfig.y,
       panelConfig.x, panelConfig.y + panelConfig.height
     );
     gradient.addColorStop(0, themeColors.panelTop);
+    gradient.addColorStop(0.5, 'rgba(0, 0, 0, 0.3)');
     gradient.addColorStop(1, themeColors.panelBottom);
     
     this.drawRoundedRect(
@@ -464,59 +465,78 @@ export default class RenderManager {
       panelConfig.borderRadius, gradient
     );
     
-    // 绘制面板边框（发光效果）
+    // 绘制面板边框（优化发光效果）
+    this.ctx.save();
     this.ctx.strokeStyle = themeColors.border;
-    this.ctx.lineWidth = 2;
+    this.ctx.lineWidth = 1.5;
+    this.ctx.globalAlpha = 0.8;
     this.drawRoundedRectStroke(
       panelConfig.x, panelConfig.y,
       panelConfig.width, panelConfig.height,
       panelConfig.borderRadius
     );
+    this.ctx.restore();
     
     
-    // 文本配置
+    // 文本配置 - 进一步增加行间距，避免拥挤
     const textX = panelConfig.x + panelConfig.padding;
     const textStartY = panelConfig.y + panelConfig.padding + 16;
-    const lineHeight = 20;
+    const lineHeight = 26;
     
-    // 渲染层数信息（主要信息）
-    this.ctx.fillStyle = themeColors.primaryText;
-    this.ctx.font = 'bold 16px Arial, sans-serif';
+    // 渲染层数信息（主要信息）- 优化字体和阴影
+    this.ctx.save();
+    this.ctx.fillStyle = '#2C2C2C';
+    this.ctx.font = 'bold 17px Arial, sans-serif';
     this.ctx.textAlign = 'left';
     // 显示倒数层数：第1层显示为第100层，第100层显示为第1层
     const displayLayer = this.game.gameData.maxLayer - this.game.gameData.currentLayer + 1;
+    // 添加文字阴影效果
+    this.ctx.fillText(`第 ${displayLayer} 层`, textX + 1, textStartY + 1);
+    this.ctx.fillStyle = themeColors.primaryText;
     this.ctx.fillText(`第 ${displayLayer} 层`, textX, textStartY);
+    this.ctx.restore();
     
-    // 渲染主题名称（副标题）
+    // 渲染主题名称（副标题）- 优化字体和颜色
     const themeInfo = this.game.levelGenerator.getThemeInfo(this.game.gameData.currentLayer);
+    this.ctx.save();
     this.ctx.fillStyle = themeColors.secondaryText;
-    this.ctx.font = '12px Arial, sans-serif';
+    this.ctx.font = '13px Arial, sans-serif';
+    this.ctx.globalAlpha = 0.85;
     this.ctx.fillText(themeInfo.name, textX, textStartY + lineHeight);
+    this.ctx.restore();
     
     // 渲染法力值（文字标签）
     const livesY = textStartY + lineHeight * 2;
     
-    // 法力值区域背景 - 调整尺寸适应文字标签
-    const livesAreaX = textX - 4;
+    // 法力值区域背景 - 优化样式和尺寸
+    const livesAreaX = textX - 6;
     const livesAreaY = livesY - 18;
-    const livesAreaWidth = 75;
-    const livesAreaHeight = 22;
+    const livesAreaWidth = 90;
+    const livesAreaHeight = 24;
     
     this.ctx.save();
-    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-    this.ctx.strokeStyle = themeColors.border;
-    this.ctx.lineWidth = 1;
-    this.drawRoundedRect(livesAreaX, livesAreaY, livesAreaWidth, livesAreaHeight, 8);
+    // 创建法力值区域渐变背景
+    const livesGradient = this.ctx.createLinearGradient(
+      livesAreaX, livesAreaY,
+      livesAreaX, livesAreaY + livesAreaHeight
+    );
+    livesGradient.addColorStop(0, 'rgba(255, 215, 0, 0.25)');
+    livesGradient.addColorStop(1, 'rgba(0, 0, 0, 0.5)');
+    
+    this.ctx.fillStyle = livesGradient;
+    this.ctx.strokeStyle = 'rgba(255, 215, 0, 0.6)';
+    this.ctx.lineWidth = 1.2;
+    this.drawRoundedRect(livesAreaX, livesAreaY, livesAreaWidth, livesAreaHeight, 10);
     this.ctx.fill();
     this.ctx.stroke();
     this.ctx.restore();
     
-    // 绘制法力值标签（文字描述）
-    const labelX = textX + 4;
+    // 绘制法力值标签（文字描述）- 优化布局
+    const labelX = textX + 2;
     const labelY = livesY;
     
     // 根据法力值变化调整文字颜色和效果
-    let labelColor = '#FFFFFF';
+    let labelColor = 'rgba(255, 255, 255, 0.9)';
     let labelSize = 14;
     
     if (this.game.livesDisplayEffect.isChanged) {
@@ -525,7 +545,7 @@ export default class RenderManager {
       if (this.game.livesDisplayEffect.changeType === 'gain') {
         // 获得法力：绿色闪烁
         labelColor = `rgb(${Math.floor(255 - 179 * flashFactor)}, 255, ${Math.floor(255 - 155 * flashFactor)})`;
-        labelSize = 14 + 3 * flashFactor; // 变大效果
+        labelSize = 14 + 3 * flashFactor;
       } else if (this.game.livesDisplayEffect.changeType === 'lose') {
         // 失去法力：红色闪烁
         labelColor = `rgb(255, ${Math.floor(255 * (1-flashFactor))}, ${Math.floor(255 * (1-flashFactor))})`;
@@ -537,34 +557,41 @@ export default class RenderManager {
     this.ctx.save();
     this.ctx.fillStyle = labelColor;
     this.ctx.font = `bold ${labelSize}px Arial, sans-serif`;
+    this.ctx.textAlign = 'left';
     this.ctx.fillText('法力', labelX, labelY);
     this.ctx.restore();
     
-    // 绘制法力值文本 - 增强效果
+    // 绘制法力值文本 - 优化布局和视觉效果
     const livesText = `${this.game.player ? this.game.player.lives : 0}`;
     this.ctx.save();
     
     // 根据法力值变化调整文字效果
-    let textColor = '#FFFFFF';
-    let fontSize = 16;
+    let textColor = '#FFD700';
+    let fontSize = 17;
     
     if (this.game.livesDisplayEffect.isChanged) {
       const flashFactor = this.game.livesDisplayEffect.flashIntensity;
       
       if (this.game.livesDisplayEffect.changeType === 'gain') {
-        // 获得法力：绿色文字
-        textColor = `rgb(${Math.floor(255 - 179 * flashFactor)}, 255, ${Math.floor(255 - 155 * flashFactor)})`;
-        fontSize = 16 + 4 * flashFactor;
+        // 获得法力：亮绿色文字
+        textColor = `rgb(${Math.floor(100 + 155 * (1-flashFactor))}, 255, ${Math.floor(100 + 155 * (1-flashFactor))})`;
+        fontSize = 17 + 3 * flashFactor;
       } else if (this.game.livesDisplayEffect.changeType === 'lose') {
         // 失去法力：红色文字
-        textColor = `rgb(255, ${Math.floor(255 * (1-flashFactor))}, ${Math.floor(255 * (1-flashFactor))})`;
-        fontSize = 16 + 2 * flashFactor;
+        textColor = `rgb(255, ${Math.floor(100 * (1-flashFactor))}, ${Math.floor(100 * (1-flashFactor))})`;
+        fontSize = 17 + 2 * flashFactor;
       }
     }
     
-    this.ctx.fillStyle = textColor;
+    // 添加文字阴影
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
     this.ctx.font = `bold ${fontSize}px Arial, sans-serif`;
-    this.ctx.fillText(livesText, labelX + 45, livesY); // 调整数字位置在"法力"标签后面
+    this.ctx.textAlign = 'right';
+    this.ctx.fillText(livesText, labelX + 80, labelY + 1);
+    
+    // 绘制主文字
+    this.ctx.fillStyle = textColor;
+    this.ctx.fillText(livesText, labelX + 79, labelY);
     this.ctx.restore();
     
     // 添加装饰性星星粒子效果
