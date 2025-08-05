@@ -275,62 +275,10 @@ export default class RenderManager {
    * 渲染滚动背景纹理
    */
   renderScrollingBackground(themeInfo) {
-    this.ctx.save();
-    this.ctx.globalAlpha = 0.1; // 半透明效果
-    
-    // 根据主题绘制不同的背景图案
-    const patternHeight = 100;
-    const numPatterns = Math.ceil(this.canvas.height / patternHeight) + 2;
-    
-    for (let i = -1; i < numPatterns; i++) {
-      const y = (i * patternHeight + this.game.backgroundOffset % patternHeight) - patternHeight;
-      this.drawBackgroundPattern(themeInfo.theme, y, patternHeight);
-    }
-    
-    this.ctx.restore();
+    // 滚动背景纹理功能已移除
+    // 现在完全依赖图像背景，不再绘制程序化纹理
   }
 
-  /**
-   * 绘制背景图案
-   */
-  drawBackgroundPattern(theme, y, height) {
-    this.ctx.fillStyle = '#FFFFFF';
-    
-    switch (theme) {
-      case 'fire':
-        // 火焰纹理：随机垂直线条
-        for (let x = 0; x < this.canvas.width; x += 20) {
-          const lineHeight = Math.random() * height * 0.3;
-          this.ctx.fillRect(x + Math.random() * 10 - 5, y + height - lineHeight, 2, lineHeight);
-        }
-        break;
-        
-      case 'ice':
-        // 冰晶纹理：菱形图案
-        for (let x = 0; x < this.canvas.width; x += 40) {
-          this.drawDiamond(x + Math.random() * 20 - 10, y + Math.random() * height, 3);
-        }
-        break;
-        
-      case 'thunder':
-        // 雷电纹理：锯齿线条
-        this.ctx.strokeStyle = '#FFFFFF';
-        this.ctx.lineWidth = 1;
-        this.ctx.beginPath();
-        for (let x = 0; x < this.canvas.width; x += 30) {
-          this.drawLightning(x + Math.random() * 15 - 7, y + Math.random() * height, 20);
-        }
-        this.ctx.stroke();
-        break;
-        
-      case 'abyss':
-        // 深渊纹理：点状图案
-        for (let x = 0; x < this.canvas.width; x += 15) {
-          this.ctx.fillRect(x + Math.random() * 10 - 5, y + Math.random() * height, 1, 1);
-        }
-        break;
-    }
-  }
 
   /**
    * 绘制菱形
