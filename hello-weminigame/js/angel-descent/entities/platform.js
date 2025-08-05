@@ -1493,44 +1493,27 @@ export default class Platform extends Sprite {
         const visualX = x - (visualWidth - scaledWidth) / 2;
         const visualY = y - (visualHeight - scaledHeight) / 2;
         
-        // 危险平台的强烈脉动发光效果
-        const pulseAlpha = 0.4 + Math.sin(this.animationTime * 8) * 0.3;
-        ctx.fillStyle = `rgba(255, 20, 20, ${pulseAlpha})`;
-        ctx.fillRect(visualX, visualY, visualWidth, visualHeight);
+        // 绘制增强的尖刺装饰
+        const spikeAnimation = Math.sin(this.animationTime * 6) * 0.3; // 温和的动画幅度
         
-        // 绘制更大更明显的尖刺装饰
-        const spikeAnimation = Math.sin(this.animationTime * 6) * 0.3;
-        ctx.fillStyle = '#FF5722'; // 温和的警告色
-        ctx.strokeStyle = '#D84315'; // 相应的边框色
-        ctx.lineWidth = 2;
+        // 主要尖刺（从平台表面朝上）- 更大更明显
+        ctx.fillStyle = '#FF0000'; // 更鲜艳的红色
+        ctx.strokeStyle = '#8B0000'; // 深红色边框
+        ctx.lineWidth = 3; // 更粗的边框
         
-        // 主要尖刺（从平台表面朝上）
-        for (let i = 0; i < Math.floor(visualWidth / 12); i++) {
-          const spikeX = visualX + 8 + i * 12;
-          const spikeHeight = 10 + spikeAnimation * 3;
+        for (let i = 0; i < Math.floor(visualWidth / 10); i++) { // 更密集的尖刺
+          const spikeX = visualX + 6 + i * 10;
+          const spikeHeight = 15 + spikeAnimation * 3; // 适度的尖刺高度变化
           ctx.beginPath();
           ctx.moveTo(spikeX, visualY);
-          ctx.lineTo(spikeX - 5, visualY + spikeHeight);
-          ctx.lineTo(spikeX + 5, visualY + spikeHeight);
+          ctx.lineTo(spikeX - 7, visualY + spikeHeight); // 更宽的底部
+          ctx.lineTo(spikeX + 7, visualY + spikeHeight);
           ctx.closePath();
           ctx.fill();
           ctx.stroke();
         }
         
-        // 底部较小的尖刺装饰（也朝上）
-        for (let i = 0; i < Math.floor(visualWidth / 15); i++) {
-          const spikeX = visualX + 12 + i * 15;
-          const spikeHeight = 6 + spikeAnimation * 2;
-          ctx.beginPath();
-          ctx.moveTo(spikeX, visualY + visualHeight);
-          ctx.lineTo(spikeX - 3, visualY + visualHeight - spikeHeight);
-          ctx.lineTo(spikeX + 3, visualY + visualHeight - spikeHeight);
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-        }
-        
-        // 侧面危险标记
+        // 危险警告标记
         ctx.fillStyle = '#FFFF00';
         ctx.strokeStyle = '#FF5722'; // 一致的警告色
         ctx.lineWidth = 3;
@@ -1541,19 +1524,6 @@ export default class Platform extends Sprite {
         const warningY = visualY + visualHeight/2 + 6;
         ctx.strokeText('⚠', visualX + visualWidth/2, warningY);
         ctx.fillText('⚠', visualX + visualWidth/2, warningY);
-        
-        // 添加危险条纹效果
-        ctx.strokeStyle = '#FFFF00';
-        ctx.lineWidth = 1;
-        ctx.setLineDash([4, 4]);
-        for (let i = 0; i < 3; i++) {
-          const stripeY = visualY + (i + 1) * visualHeight / 4;
-          ctx.beginPath();
-          ctx.moveTo(visualX + 2, stripeY);
-          ctx.lineTo(visualX + visualWidth - 2, stripeY);
-          ctx.stroke();
-        }
-        ctx.setLineDash([]);
         
         break;
     }
