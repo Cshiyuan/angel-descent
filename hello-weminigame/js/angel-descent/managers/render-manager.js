@@ -782,12 +782,12 @@ export default class RenderManager {
     // 移除调试信息，保持界面简洁美观
     
     // 美术风格的暂停界面（只在真正暂停时显示，胜利状态不显示）
-    if (this.game.paused && this.game.currentState === this.game.constructor.GAME_STATES?.PAUSED) {
+    if (this.game.paused && this.game.currentState === 'paused') {
       this.renderPauseOverlay();
     }
     
     // 游戏失败提示
-    if (this.game.currentState === this.game.constructor.GAME_STATES?.GAME_OVER) {
+    if (this.game.currentState === 'game_over') {
       this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
       
@@ -818,7 +818,7 @@ export default class RenderManager {
     }
     
     // 游戏完成提示
-    if (this.game.currentState === this.game.constructor.GAME_STATES?.LEVEL_COMPLETE) {
+    if (this.game.currentState === 'level_complete') {
       this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
       
