@@ -33,6 +33,12 @@ GameGlobal.canvas = canvas; // 保存到全局对象供其他模块使用
 const windowInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
 
 /**
+ * 设备像素比
+ * 用于高DPI屏幕的清晰度适配，防止画面模糊
+ */
+const pixelRatio = windowInfo.pixelRatio || 1;
+
+/**
  * 异形屏幕检测函数
  * 检测设备是否为刘海屏、水滴屏或其他异形屏幕
  */

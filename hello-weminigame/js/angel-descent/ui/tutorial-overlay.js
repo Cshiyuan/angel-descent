@@ -4,6 +4,7 @@
  */
 
 import { SAFE_AREA, SAFE_AREA_INSETS, IS_NOTCH_SCREEN, DEBUG_INFO } from '../../render.js';
+import { resourceManager } from '../../runtime/resource-manager.js';
 
 /**
  * 新手指引遮罩层类
@@ -21,8 +22,12 @@ export default class TutorialOverlay {
     this.showDelay = 0.5; // 延迟显示时间（秒）
     this.currentDelay = 0;
     
-    // 文本内容配置（动态计算位置）
-    this.updateContentPositions();
+    // 开始界面图像
+    this.startImage = null;
+    this.imageLoaded = false;
+    this.loadStartImage();
+    
+    // 内容配置已简化，不再需要动态计算文本位置
     
     // 闪烁效果
     this.blinkTimer = 0;
@@ -40,78 +45,24 @@ export default class TutorialOverlay {
   }
 
   /**
-   * 更新内容位置（基于实际canvas尺寸和安全区域）
+   * 加载开始界面图像
+   */
+  async loadStartImage() {
+    try {
+      this.startImage = await resourceManager.loadImage('images/ui/bg_start.png');
+      this.imageLoaded = this.startImage !== null;
+    } catch (error) {
+      console.warn('开始界面图像加载失败:', error);
+      this.imageLoaded = false;
+    }
+  }
+
+  /**
+   * 更新内容位置（已简化，主要使用图像显示）
    */
   updateContentPositions() {
-    const width = this.canvas.width;
-    const height = this.canvas.height;
-    
-    // 计算安全区域内的有效显示区域
-    const safeTop = SAFE_AREA_INSETS.top;
-    const safeBottom = SAFE_AREA_INSETS.bottom;
-    const safeHeight = height - safeTop - safeBottom;
-    const contentStartY = safeTop + safeHeight * 0.1; // 从安全区域的10%开始
-    
-    this.content = {
-      title: {
-        text: '天使下凡一百层',
-        fontSize: 40,
-        color: '#FFD700',
-        y: contentStartY + safeHeight * 0.08
-      },
-      subtitle: {
-        text: '挑战百层天界试炼',
-        fontSize: 22,
-        color: '#FFFFFF',
-        y: contentStartY + safeHeight * 0.15
-      },
-      instructions: [
-        {
-          text: '游戏目标：',
-          fontSize: 26,
-          color: '#FFCC00',
-          y: contentStartY + safeHeight * 0.25
-        },
-        {
-          text: '穿越100层天界，抵达人间完成使命',
-          fontSize: 20,
-          color: '#CCCCCC',
-          y: contentStartY + safeHeight * 0.31
-        },
-        {
-          text: '操作方法：',
-          fontSize: 26,
-          color: '#FFCC00',
-          y: contentStartY + safeHeight * 0.38
-        },
-        {
-          text: '点击屏幕左半部分 → 向左移动',
-          fontSize: 20,
-          color: '#CCCCCC',
-          y: contentStartY + safeHeight * 0.44
-        },
-        {
-          text: '点击屏幕右半部分 → 向右移动',
-          fontSize: 20,
-          color: '#CCCCCC',
-          y: contentStartY + safeHeight * 0.49
-        },
-        {
-          text: '小心！控制下凡速度避免坠落过快',
-          fontSize: 20,
-          color: '#FF6666',
-          y: contentStartY + safeHeight * 0.75
-        }
-      ],
-      startHint: {
-        text: '点击屏幕任意位置开始游戏',
-        fontSize: 22,
-        color: '#00FF88',
-        y: contentStartY + safeHeight * 0.82,
-        blinking: true,
-        blinkSpeed: 2
-      }
-    };
+    // 内容配置已简化为图像显示，不再需要复杂的文本位置计算
+    // 保留此方法以维持接口兼容性
   }
 
   /**
@@ -165,9 +116,9 @@ export default class TutorialOverlay {
       this.fadeAlpha = Math.min(1, this.fadeAlpha + this.fadeSpeed * deltaTime);
     }
     
-    // 闪烁效果
+    // 闪烁效果（用于后备文本显示）
     this.blinkTimer += deltaTime;
-    if (this.blinkTimer >= 1 / this.content.startHint.blinkSpeed) {
+    if (this.blinkTimer >= 1 / 2) { // 固定闪烁速度：每秒2次
       this.blinkVisible = !this.blinkVisible;
       this.blinkTimer = 0;
     }
@@ -228,16 +179,26 @@ export default class TutorialOverlay {
     // 应用淡入透明度
     ctx.globalAlpha = this.fadeAlpha;
     
-    // 绘制半透明背景
+    // 第一层：绘制半透明背景覆盖层（最底层）
     this.renderBackground(ctx);
     
-    // 绘制背景粒子装饰
+    // 第二层：绘制开始界面图像（在背景覆盖之上）
+    if (this.imageLoaded && this.startImage) {
+      this.renderStartImage(ctx, this.canvas.width, this.canvas.height);
+    }
+    
+    // 第三层：绘制背景粒子装饰
     this.renderBackgroundParticles(ctx);
     
-    // 绘制主要内容
-    this.renderContent(ctx);
+    // 第四层：绘制后备内容（如果图像未加载）
+    if (!this.imageLoaded || !this.startImage) {
+      this.renderFallbackContent(ctx, this.canvas.width, this.canvas.height);
+    } else {
+      // 图像已加载时，仍然显示闪烁的"点击开始"文字
+      this.renderStartPrompt(ctx, this.canvas.width, this.canvas.height);
+    }
     
-    // 绘制调试覆盖层（如果启用）
+    // 顶层：绘制调试覆盖层（如果启用）
     this.renderDebugOverlay(ctx);
     
     ctx.restore();
@@ -253,8 +214,8 @@ export default class TutorialOverlay {
     // 扩展绘制区域，确保完全覆盖包括边缘
     const extraMargin = 50; // 额外边距确保完全覆盖
     
-    // 深色半透明背景，使用扩展区域覆盖
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+    // 深色半透明背景覆盖层，让底层图像仍然可见
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'; // 降低透明度，让底层图像透出
     ctx.fillRect(-extraMargin, -extraMargin, width + extraMargin * 2, height + extraMargin * 2);
     
     // 装饰边框
@@ -287,131 +248,93 @@ export default class TutorialOverlay {
   }
 
   /**
-   * 渲染主要内容
+   * 渲染主要内容（已移至 render 方法中按层级渲染）
    */
   renderContent(ctx) {
-    const width = this.canvas.width;
-    const height = this.canvas.height;
+    // 内容渲染已移至主 render 方法中，按正确的层级顺序渲染
+    // 保留此方法以维持接口兼容性
+  }
+
+  /**
+   * 渲染开始界面图像
+   */
+  renderStartImage(ctx, width, height) {
+    ctx.save();
     
+    // 计算图像缩放：水平方向填满屏幕
+    const imageAspectRatio = this.startImage.width / this.startImage.height;
+    
+    // 以屏幕宽度为准缩放图像
+    const drawWidth = width;
+    const drawHeight = drawWidth / imageAspectRatio;
+    
+    // 水平居中（贴边），垂直居中
+    const drawX = 0; // 贴左边
+    const drawY = (height - drawHeight) / 2;
+    
+    // 应用渐变透明度
+    ctx.globalAlpha = this.fadeAlpha;
+    
+    // 绘制图像（作为底层背景）
+    ctx.drawImage(
+      this.startImage,
+      drawX,
+      drawY,
+      drawWidth,
+      drawHeight
+    );
+    
+    ctx.restore();
+  }
+
+
+  /**
+   * 渲染后备内容（图像未加载时）
+   */
+  renderFallbackContent(ctx, width, height) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
-    // 绘制标题
-    this.renderTitle(ctx, width);
+    // 简化版的开始提示
+    ctx.font = 'bold 32px Arial';
+    ctx.fillStyle = '#FFD700';
+    ctx.fillText('天使下凡一百层', width / 2, height / 2 - 60);
     
-    // 绘制副标题
-    this.renderSubtitle(ctx, width);
-    
-    // 绘制操作说明
-    this.renderInstructions(ctx, width);
-    
-    // 绘制开始提示（带闪烁效果）
-    this.renderStartHint(ctx, width);
-    
-    // 绘制可视化操作区域提示
-    this.renderControlAreas(ctx, width, height);
-  }
-
-  /**
-   * 渲染标题
-   */
-  renderTitle(ctx, width) {
-    const title = this.content.title;
-    ctx.font = `bold ${title.fontSize}px Arial`;
-    ctx.fillStyle = title.color;
-    
-    
-    ctx.fillText(title.text, width / 2, title.y);
-    
-  }
-
-  /**
-   * 渲染副标题
-   */
-  renderSubtitle(ctx, width) {
-    const subtitle = this.content.subtitle;
-    ctx.font = `${subtitle.fontSize}px Arial`;
-    ctx.fillStyle = subtitle.color;
-    ctx.fillText(subtitle.text, width / 2, subtitle.y);
-  }
-
-  /**
-   * 渲染操作说明
-   */
-  renderInstructions(ctx, width) {
-    for (const instruction of this.content.instructions) {
-      ctx.font = `${instruction.fontSize}px Arial`;
-      ctx.fillStyle = instruction.color;
-      ctx.fillText(instruction.text, width / 2, instruction.y);
-    }
-  }
-
-  /**
-   * 渲染开始提示
-   */
-  renderStartHint(ctx, width) {
-    const hint = this.content.startHint;
-    
-    // 闪烁效果
-    if (!hint.blinking || this.blinkVisible) {
-      ctx.font = `${hint.fontSize}px Arial`;
-      ctx.fillStyle = hint.color;
-      
-      // 添加发光效果
-      
-      ctx.fillText(hint.text, width / 2, hint.y);
-      
-    }
-  }
-
-  /**
-   * 渲染可视化操作区域提示 - 适配安全区域
-   */
-  renderControlAreas(ctx, width, height) {
-    ctx.save();
-    ctx.globalAlpha = 0.3 * this.fadeAlpha;
-    
-    const centerX = width / 2;
-    const safeTop = SAFE_AREA_INSETS.top;
-    const safeBottom = SAFE_AREA_INSETS.bottom;
-    const safeHeight = height - safeTop - safeBottom;
-    
-    // 操作区域位置调整到安全区域内，避免与文字重叠
-    const areaY = safeTop + safeHeight * 0.62;
-    const areaHeight = safeHeight * 0.12;
-    
-    // 左侧区域 - 左移（考虑左侧安全区域）
-    const leftStart = Math.max(SAFE_AREA_INSETS.left, 0);
-    const leftWidth = centerX - 2 - leftStart;
-    ctx.fillStyle = '#FF6666';
-    ctx.fillRect(leftStart, areaY, leftWidth, areaHeight);
-    
-    // 右侧区域 - 右移（考虑右侧安全区域）
-    const rightStart = centerX + 2;
-    const rightWidth = width - rightStart - Math.max(SAFE_AREA_INSETS.right, 0);
-    ctx.fillStyle = '#66AAFF';
-    ctx.fillRect(rightStart, areaY, rightWidth, areaHeight);
-    
-    // 中间分界线
+    ctx.font = '20px Arial';
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(centerX - 1, areaY, 2, areaHeight);
+    ctx.fillText('穿越100层天界，抵达人间完成使命', width / 2, height / 2 - 20);
+    
+    // 闪烁的开始提示
+    if (this.blinkVisible) {
+      ctx.font = 'bold 24px Arial';
+      ctx.fillStyle = '#00FF88';
+      ctx.fillText('点击屏幕任意位置开始游戏', width / 2, height / 2 + 40);
+    }
+  }
+
+  /**
+   * 渲染开始提示文字（图像已加载时显示在图像上方）
+   */
+  renderStartPrompt(ctx, width, height) {
+    if (!this.blinkVisible) return;
+    
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    // 闪烁的"点击开始"文字
+    ctx.font = 'bold 28px Arial';
+    ctx.fillStyle = '#00FF88';
+    
+    // 添加文字描边效果，让文字在图像上更清晰
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 3;
+    ctx.strokeText('点击开始', width / 2, height - 80);
+    ctx.fillText('点击开始', width / 2, height - 80);
     
     ctx.restore();
-    
-    // 区域标签
-    ctx.font = 'bold 18px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#FFFFFF';
-    
-    
-    // 标签位置也要考虑安全区域
-    const leftLabelX = leftStart + leftWidth / 2;
-    const rightLabelX = rightStart + rightWidth / 2;
-    
-    ctx.fillText('← 左移', leftLabelX, areaY + areaHeight / 2);
-    ctx.fillText('右移 →', rightLabelX, areaY + areaHeight / 2);
-    
   }
+
 
   /**
    * 重置指引状态（用于游戏重启）
@@ -424,6 +347,12 @@ export default class TutorialOverlay {
     this.blinkTimer = 0;
     this.blinkVisible = true;
     this.particles = this.generateBackgroundParticles();
+    
+    // 如果图像尚未加载，重新尝试加载
+    if (!this.imageLoaded) {
+      this.loadStartImage();
+    }
+    
     // 已重置新手指引状态
   }
 
