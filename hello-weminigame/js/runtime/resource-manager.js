@@ -42,7 +42,7 @@ export default class ResourceManager {
       fragile: 'images/platforms/platform_fragile.png',
       moving: 'images/platforms/platform_normal.png', // 复用普通平台，渲染时添加金色覆盖
       disappearing: 'images/platforms/platform_normal.png', // 复用普通平台，渲染时添加粉色覆盖
-      ice: 'images/platforms/platform_ice.png',
+      ice: 'images/platforms/platform_normal.png', // 复用普通平台，渲染时添加蓝色覆盖
       bounce: 'images/platforms/platform_bounce.png',
       dangerous: 'images/platforms/platform_danger.png'
     };

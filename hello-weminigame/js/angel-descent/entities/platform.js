@@ -1256,6 +1256,31 @@ export default class Platform extends Sprite {
         ctx.restore();
         break;
         
+      case PLATFORM_TYPES.ICE:
+        // 冰块平台：使用platform_normal渲染成蓝色
+        ctx.save();
+        
+        // 第一层：白色打底，提亮底色
+        ctx.globalCompositeOperation = 'screen';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.globalAlpha = 0.6;
+        ctx.fillRect(imageX, imageY, imageWidth, imageHeight);
+        
+        // 第二层：蓝色覆盖
+        ctx.globalCompositeOperation = 'multiply';
+        ctx.fillStyle = '#87CEEB'; // 天蓝色
+        ctx.globalAlpha = 0.8;
+        ctx.fillRect(imageX, imageY, imageWidth, imageHeight);
+        
+        // 第三层：深蓝色加强
+        ctx.globalCompositeOperation = 'overlay';
+        ctx.fillStyle = '#4682B4'; // 钢蓝色
+        ctx.globalAlpha = 0.5;
+        ctx.fillRect(imageX, imageY, imageWidth, imageHeight);
+        
+        ctx.restore();
+        break;
+        
       default:
         return; // 其他类型不需要颜色覆盖
     }
@@ -1338,26 +1363,28 @@ export default class Platform extends Sprite {
         break;
         
       case PLATFORM_TYPES.ICE:
-        // 动态表面光泽效果
+        // 动态表面光泽效果（简化版）
         const shineIntensity = this.surfaceShine * (0.3 + this.impactIntensity * 0.7);
         const shineOffset = (this.animationTime * 50) % (scaledWidth + 20) - 10;
         
         // 移动的光泽条纹
-        const gradient = ctx.createLinearGradient(x + shineOffset - 10, y, x + shineOffset + 10, y);
-        gradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
-        gradient.addColorStop(0.5, `rgba(255, 255, 255, ${shineIntensity})`);
-        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(x + shineOffset - 10, y, 20, scaledHeight);
+        if (shineIntensity > 0) {
+          const gradient = ctx.createLinearGradient(x + shineOffset - 10, y, x + shineOffset + 10, y);
+          gradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
+          gradient.addColorStop(0.5, `rgba(255, 255, 255, ${shineIntensity})`);
+          gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+          ctx.fillStyle = gradient;
+          ctx.fillRect(x + shineOffset - 10, y, 20, scaledHeight);
+        }
         
-        // 增强的边缘冰霜效果
+        // 边缘冰霜效果
         ctx.fillStyle = `rgba(255, 255, 255, ${0.6 + this.glowIntensity * 0.4})`;
         ctx.fillRect(x + 2, y + 2, scaledWidth - 4, 2);
         ctx.fillRect(x + 2, y + scaledHeight - 4, scaledWidth - 4, 2);
         
-        // 边缘结霜 - 锯齿状效果
+        // 简化的边缘结霜 - 锯齿状效果
         ctx.fillStyle = `rgba(240, 248, 255, ${0.8 + this.impactIntensity * 0.2})`;
-        for (let i = 0; i < scaledWidth; i += 8) {
+        for (let i = 0; i < scaledWidth; i += 12) { // 间距加大减少计算
           const frostHeight = 2 + Math.sin(i * 0.5 + this.animationTime * 3) * 1;
           // 顶部结霜
           ctx.fillRect(x + i, y - 1, 3, frostHeight);
@@ -1365,7 +1392,7 @@ export default class Platform extends Sprite {
           ctx.fillRect(x + i, y + scaledHeight - frostHeight + 1, 3, frostHeight);
         }
         
-        // 增强的冰晶装饰
+        // 简化的冰晶装饰
         ctx.fillStyle = `rgba(255, 255, 255, ${0.8 + this.impactIntensity * 0.2})`;
         for (let i = 0; i < 3; i++) {
           const crystalX = x + (i + 1) * scaledWidth / 4;
@@ -1375,16 +1402,12 @@ export default class Platform extends Sprite {
           // 主冰晶
           ctx.fillRect(crystalX - crystalSize, crystalY - crystalSize * 2, crystalSize * 2, crystalSize * 4);
           ctx.fillRect(crystalX - crystalSize * 2, crystalY - crystalSize, crystalSize * 4, crystalSize * 2);
-          
-          // 小装饰点
-          ctx.fillRect(crystalX - 0.5, crystalY - 4, 1, 1);
-          ctx.fillRect(crystalX - 0.5, crystalY + 4, 1, 1);
         }
         
         // 冰花粒子效果（踩踏时）
         if (this.impactIntensity > 0) {
           ctx.fillStyle = `rgba(173, 216, 230, ${this.impactIntensity})`;
-          for (let i = 0; i < 8; i++) {
+          for (let i = 0; i < 6; i++) { // 减少粒子数量
             const sparkleX = x + Math.random() * scaledWidth;
             const sparkleY = y + Math.random() * scaledHeight;
             const sparkleSize = 1 + Math.random() * 2;
