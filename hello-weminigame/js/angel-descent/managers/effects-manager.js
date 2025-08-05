@@ -114,9 +114,12 @@ export default class EffectsManager {
     if (shouldSpawn) {
       // 在屏幕边缘生成向上移动的粒子
       for (let i = 0; i < 3; i++) {
+        // 计算粒子在世界坐标系中的生成位置（修正位置错误）
+        const worldY = this.game.player.y + this.canvas.height/2 + 50; // 在玩家下方生成
+        
         const particle = {
-          x: Math.random() * this.canvas.width,
-          y: this.canvas.height + 20, // 从屏幕底部开始
+          x: this.game.player.x + (Math.random() - 0.5) * this.canvas.width, // 围绕玩家生成
+          y: worldY, // 在玩家下方的世界坐标
           velocity: {
             x: (Math.random() - 0.5) * 20,
             y: -200 - Math.random() * 100 // 向上移动
@@ -124,7 +127,7 @@ export default class EffectsManager {
           life: 1.0 + Math.random() * 0.5,
           maxLife: 1.5,
           size: 1 + Math.random() * 2,
-          alpha: 0.3 + Math.random() * 0.4,
+          alpha: 0.4 + Math.random() * 0.4, // 稍微提高透明度
           color: this.getCurrentThemeParticleColor()
         };
         
@@ -146,10 +149,13 @@ export default class EffectsManager {
       
       // 更新生命值
       particle.life -= deltaTime;
-      particle.alpha = (particle.life / particle.maxLife) * 0.6;
+      particle.alpha = (particle.life / particle.maxLife) * 0.7; // 稍微提高透明度保持
       
-      // 移除过期粒子
-      if (particle.life <= 0 || particle.y < -50) {
+      // 移除过期粒子 - 基于世界坐标判断
+      const cameraY = this.game.camera ? this.game.camera.y : 0;
+      const screenTopY = cameraY - 100; // 屏幕上方100px处清理
+      
+      if (particle.life <= 0 || particle.y < screenTopY) {
         this.game.fallEffectParticles.splice(i, 1);
       }
     }
@@ -199,8 +205,9 @@ export default class EffectsManager {
       particle.x += particle.vx * deltaTime;
       particle.y += particle.vy * deltaTime;
       
-      // 更新粒子透明度（基于生命值）
-      particle.alpha = Math.min(1, particle.life / particle.maxLife);
+      // 更新粒子透明度（基于生命值，保持较高可见度）
+      const lifeRatio = particle.life / particle.maxLife;
+      particle.alpha = Math.max(0.4, lifeRatio); // 最低透明度0.4，避免过快消失
       
       // 更新粒子尺寸（轻微的脉动效果）
       particle.currentSize = particle.baseSize * (1 + 0.1 * Math.sin(particle.pulsePhase));
@@ -300,7 +307,6 @@ export default class EffectsManager {
       maxLife: 0, // 初始化后设置
       alpha: 1,
       color: selectedType.color,
-      type: selectedType.name,
       pulsePhase: Math.random() * Math.PI * 2
     };
     

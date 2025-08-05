@@ -22,6 +22,7 @@ export default class RenderManager {
     
     // 首先渲染静态背景（不受摄像机影响）
     this.renderBackground();
+    this.renderBackgroundParticles(); // 背景粒子也应该静态，不跟随摄像机
     
     // 应用摄像机变换
     if (this.game.camera) {
@@ -31,7 +32,6 @@ export default class RenderManager {
     }
     
     // 渲染游戏世界中需要跟随摄像机的元素
-    this.renderBackgroundParticles();
     this.renderPlatforms();
     this.renderLifeFruits();
     this.renderPlayer();
@@ -432,18 +432,10 @@ export default class RenderManager {
     
     for (const particle of this.game.backgroundParticles) {
       // 设置粒子透明度
-      this.ctx.globalAlpha = particle.alpha * 0.8; // 稍微降低透明度，让粒子更柔和
+      this.ctx.globalAlpha = Math.min(1.0, particle.alpha * 1.2); // 进一步提高透明度
       
-      // 设置粒子样式
+      // 设置粒子样式并渲染为简单圆形
       this.ctx.fillStyle = particle.color;
-      
-      // 优化：简化粒子渲染，统一使用简单的圆形减少绘制复杂度
-      // 只对部分粒子添加发光效果，减少shadow计算开销
-      if (particle.type === 'sparkle' && Math.random() < 0.3) {
-      } else {
-      }
-      
-      // 统一渲染为简单圆形，避免复杂的星形和多重圆形绘制
       this.ctx.beginPath();
       this.ctx.arc(particle.x, particle.y, particle.currentSize, 0, Math.PI * 2);
       this.ctx.fill();

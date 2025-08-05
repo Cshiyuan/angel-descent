@@ -97,15 +97,15 @@ export default class AngelDescentGame {
     this.backgroundParticles = [];
     this.backgroundParticleSystem = {
       enabled: true,
-      maxParticles: 25,          // 减少最大粒子数量从50到25，减少50%
-      spawnRate: 0.3,            // 减少生成频率从0.5到0.3（粒子/秒），减少40%
+      maxParticles: 60,          // 进一步增加粒子数量
+      spawnRate: 1.5,            // 显著提高生成频率
       spawnTimer: 0,             // 生成计时器
       particleTypes: [
         {
           name: 'sparkle',
           color: '#FFD700',
-          minSize: 1,
-          maxSize: 2, // 减小粒子尺寸
+          minSize: 2,
+          maxSize: 4, // 更大的粒子尺寸
           minLife: 5, // 缩短生存时间从8-15到5-10秒
           maxLife: 10,
           minSpeed: 10,
@@ -115,8 +115,8 @@ export default class AngelDescentGame {
         {
           name: 'glow',
           color: '#FFFFFF',
-          minSize: 1, // 减小尺寸
-          maxSize: 3,
+          minSize: 2, // 更大的尺寸
+          maxSize: 5,
           minLife: 6, // 缩短生存时间从12-20到6-12秒
           maxLife: 12,
           minSpeed: 5,
@@ -126,8 +126,8 @@ export default class AngelDescentGame {
         {
           name: 'dust',
           color: '#F0F8FF',
-          minSize: 0.5,
-          maxSize: 1.5, // 减小尺寸
+          minSize: 1.5,
+          maxSize: 3.5, // 更大的尺寸
           minLife: 6, // 缩短生存时间从10-25到6-15秒
           maxLife: 15,
           minSpeed: 8,
