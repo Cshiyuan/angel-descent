@@ -10,6 +10,9 @@ export default class EffectsManager {
   constructor(game) {
     this.game = game;
     this.canvas = game.canvas;
+    // 使用逻辑尺寸进行特效计算
+    this.logicalWidth = game.logicalWidth;
+    this.logicalHeight = game.logicalHeight;
   }
 
   /**
@@ -115,10 +118,10 @@ export default class EffectsManager {
       // 在屏幕边缘生成向上移动的粒子
       for (let i = 0; i < 3; i++) {
         // 计算粒子在世界坐标系中的生成位置（修正位置错误）
-        const worldY = this.game.player.y + this.canvas.height/2 + 50; // 在玩家下方生成
+        const worldY = this.game.player.y + this.logicalHeight/2 + 50; // 在玩家下方生成
         
         const particle = {
-          x: this.game.player.x + (Math.random() - 0.5) * this.canvas.width, // 围绕玩家生成
+          x: this.game.player.x + (Math.random() - 0.5) * this.logicalWidth, // 围绕玩家生成
           y: worldY, // 在玩家下方的世界坐标
           velocity: {
             x: (Math.random() - 0.5) * 20,
@@ -226,10 +229,10 @@ export default class EffectsManager {
       }
       
       // 边界检查 - 让粒子在屏幕边缘循环
-      if (particle.x < -50) particle.x = this.canvas.width + 50;
-      if (particle.x > this.canvas.width + 50) particle.x = -50;
-      if (particle.y < -50) particle.y = this.canvas.height + 50;
-      if (particle.y > this.canvas.height + 50) particle.y = -50;
+      if (particle.x < -50) particle.x = this.logicalWidth + 50;
+      if (particle.x > this.logicalWidth + 50) particle.x = -50;
+      if (particle.y < -50) particle.y = this.logicalHeight + 50;
+      if (particle.y > this.logicalHeight + 50) particle.y = -50;
       
       // 移除生命值耗尽的粒子
       if (particle.life <= 0) {
@@ -270,26 +273,26 @@ export default class EffectsManager {
     
     switch (side) {
       case 0: // 上边
-        x = Math.random() * this.canvas.width;
+        x = Math.random() * this.logicalWidth;
         y = -20;
         vx = (Math.random() - 0.5) * selectedType.maxSpeed;
         vy = Math.random() * selectedType.maxSpeed * 0.5 + selectedType.minSpeed;
         break;
       case 1: // 右边
-        x = this.canvas.width + 20;
-        y = Math.random() * this.canvas.height;
+        x = this.logicalWidth + 20;
+        y = Math.random() * this.logicalHeight;
         vx = -(Math.random() * selectedType.maxSpeed * 0.5 + selectedType.minSpeed);
         vy = (Math.random() - 0.5) * selectedType.maxSpeed;
         break;
       case 2: // 下边
-        x = Math.random() * this.canvas.width;
-        y = this.canvas.height + 20;
+        x = Math.random() * this.logicalWidth;
+        y = this.logicalHeight + 20;
         vx = (Math.random() - 0.5) * selectedType.maxSpeed;
         vy = -(Math.random() * selectedType.maxSpeed * 0.5 + selectedType.minSpeed);
         break;
       case 3: // 左边
         x = -20;
-        y = Math.random() * this.canvas.height;
+        y = Math.random() * this.logicalHeight;
         vx = Math.random() * selectedType.maxSpeed * 0.5 + selectedType.minSpeed;
         vy = (Math.random() - 0.5) * selectedType.maxSpeed;
         break;

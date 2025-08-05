@@ -118,6 +118,12 @@ function calculateConservativeSafeArea(windowInfo) {
 const safeArea = calculateConservativeSafeArea(windowInfo);
 
 /**
+ * 设备像素比常量
+ * 导出供其他模块使用，用于高DPI屏幕的坐标计算和缩放适配
+ */
+export const PIXEL_RATIO = pixelRatio;
+
+/**
  * 异形屏幕检测结果
  * 用于其他模块判断当前设备是否为异形屏幕
  */
@@ -137,21 +143,25 @@ export const DEBUG_INFO = {
 
 /**
  * 设置Canvas画布尺寸
- * 使用完整的屏幕尺寸确保画布能够覆盖整个屏幕区域，
- * 包括安全区域外的区域，这样可以实现沉浸式的游戏体验
+ * 适配微信小游戏Android端Canvas放缩策略变更：
+ * - 为保持画面清晰度，需要将Canvas尺寸设置为物理像素尺寸
+ * - 使用 screenWidth/screenHeight * pixelRatio 确保高DPI屏幕清晰显示
+ * - 此修改在老版本微信上也能正常运行，具有向后兼容性
  */
-canvas.width = windowInfo.screenWidth;
-canvas.height = windowInfo.screenHeight;
+canvas.width = windowInfo.screenWidth * pixelRatio;
+canvas.height = windowInfo.screenHeight * pixelRatio;
 
 /**
- * 屏幕宽度常量（像素）
- * 设备屏幕的物理像素宽度，用于游戏对象的位置计算和边界检测
+ * 屏幕宽度常量（逻辑像素）
+ * 设备屏幕的逻辑像素宽度，用于游戏对象的位置计算和边界检测
+ * 注意：Canvas的物理尺寸是此值乘以pixelRatio，但游戏逻辑应使用此逻辑尺寸
  */
 export const SCREEN_WIDTH = windowInfo.screenWidth;
 
 /**
- * 屏幕高度常量（像素）
- * 设备屏幕的物理像素高度，用于游戏对象的位置计算和边界检测
+ * 屏幕高度常量（逻辑像素）
+ * 设备屏幕的逻辑像素高度，用于游戏对象的位置计算和边界检测
+ * 注意：Canvas的物理尺寸是此值乘以pixelRatio，但游戏逻辑应使用此逻辑尺寸
  */
 export const SCREEN_HEIGHT = windowInfo.screenHeight;
 
@@ -188,3 +198,10 @@ export const SAFE_AREA_INSETS = {
  * 游戏中的所有渲染操作都通过此上下文进行
  */
 export const ctx = canvas.getContext('2d');
+
+/**
+ * 设置Canvas渲染上下文缩放
+ * 适配高DPI屏幕：Canvas物理尺寸已乘以pixelRatio，现在需要设置相应的缩放
+ * 这样游戏逻辑可以继续使用逻辑像素坐标，渲染会自动缩放到物理像素
+ */
+ctx.scale(pixelRatio, pixelRatio);

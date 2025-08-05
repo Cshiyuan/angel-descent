@@ -11,6 +11,9 @@ export default class RenderManager {
     this.game = game;
     this.canvas = game.canvas;
     this.ctx = game.ctx;
+    // 使用逻辑尺寸进行渲染计算
+    this.logicalWidth = game.logicalWidth;
+    this.logicalHeight = game.logicalHeight;
   }
 
   /**
@@ -18,7 +21,7 @@ export default class RenderManager {
    */
   render() {
     // 清除画布
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.clearRect(0, 0, this.logicalWidth, this.logicalHeight);
     
     // 首先渲染静态背景（不受摄像机影响）
     this.renderBackground();
@@ -153,7 +156,7 @@ export default class RenderManager {
     }
     
     // 创建对应的渐变
-    const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
+    const gradient = this.ctx.createLinearGradient(0, 0, 0, this.logicalHeight);
     
     switch (gameTheme) {
       case 'fire':
@@ -178,7 +181,7 @@ export default class RenderManager {
     }
     
     this.ctx.fillStyle = gradient;
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.fillRect(0, 0, this.logicalWidth, this.logicalHeight);
   }
   
   /**
@@ -204,8 +207,8 @@ export default class RenderManager {
    * @param {Image} backgroundImage - 背景图像对象
    */
   renderImageBackground(backgroundImage) {
-    const canvasWidth = this.canvas.width;
-    const canvasHeight = this.canvas.height;
+    const canvasWidth = this.logicalWidth;
+    const canvasHeight = this.logicalHeight;
     
     // 计算缩放比例以覆盖整个屏幕，保持图像比例
     const scaleX = canvasWidth / backgroundImage.width;
@@ -242,7 +245,7 @@ export default class RenderManager {
     const themeInfo = this.game.levelGenerator.getThemeInfo(layer);
     
     // 使用主题色彩创建渐变背景
-    const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
+    const gradient = this.ctx.createLinearGradient(0, 0, 0, this.logicalHeight);
     
     // 根据主题选择渐变色
     switch (themeInfo.theme) {
@@ -268,7 +271,7 @@ export default class RenderManager {
     }
     
     this.ctx.fillStyle = gradient;
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.fillRect(0, 0, this.logicalWidth, this.logicalHeight);
   }
 
   /**
@@ -325,7 +328,7 @@ export default class RenderManager {
     // 获取摄像机偏移，计算可见区域，配合扩大的视野增加渲染范围
     const offset = this.game.camera.getOffset();
     const visibleTop = -offset.y - 200; // 进一步扩展上边界以配合新视野
-    const visibleBottom = -offset.y + this.canvas.height + 300; // 进一步扩展下边界以配合新视野
+    const visibleBottom = -offset.y + this.logicalHeight + 300; // 进一步扩展下边界以配合新视野
     
     for (const platform of this.game.platforms) {
       // 跳过空层标记对象
@@ -350,7 +353,7 @@ export default class RenderManager {
     // 获取摄像机偏移，计算可见区域
     const offset = this.game.camera.getOffset();
     const visibleTop = -offset.y - 200;
-    const visibleBottom = -offset.y + this.canvas.height + 300;
+    const visibleBottom = -offset.y + this.logicalHeight + 300;
     
     for (const lifeFruit of this.game.lifeFruits) {
       // 视觉裁剪：只渲染在可见区域内或附近的生命果实
@@ -685,11 +688,11 @@ export default class RenderManager {
     
     // 半透明背景
     this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.fillRect(0, 0, this.logicalWidth, this.logicalHeight);
     
     // 主面板
-    const centerX = this.canvas.width / 2;
-    const centerY = this.canvas.height / 2;
+    const centerX = this.logicalWidth / 2;
+    const centerY = this.logicalHeight / 2;
     const panelWidth = 200;
     const panelHeight = 120;
     
@@ -789,7 +792,7 @@ export default class RenderManager {
     // 游戏失败提示
     if (this.game.currentState === 'game_over') {
       this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      this.ctx.fillRect(0, 0, this.logicalWidth, this.logicalHeight);
       
       // 根据失败原因显示不同的标题和消息
       const failureInfo = this.getFailureMessage(this.game.gameOverReason);
@@ -797,42 +800,42 @@ export default class RenderManager {
       this.ctx.fillStyle = failureInfo.titleColor;
       this.ctx.font = 'bold 28px Arial';
       this.ctx.textAlign = 'center';
-      this.ctx.fillText(failureInfo.title, this.canvas.width/2, this.canvas.height/2 - 60);
+      this.ctx.fillText(failureInfo.title, this.logicalWidth/2, this.logicalHeight/2 - 60);
       
       this.ctx.fillStyle = failureInfo.messageColor;
       this.ctx.font = '18px Arial';
-      this.ctx.fillText(failureInfo.message, this.canvas.width/2, this.canvas.height/2 - 20);
+      this.ctx.fillText(failureInfo.message, this.logicalWidth/2, this.logicalHeight/2 - 20);
       
       // 显示详细信息
       this.ctx.fillStyle = '#CCCCCC';
       this.ctx.font = '14px Arial';
-      this.ctx.fillText(failureInfo.detail, this.canvas.width/2, this.canvas.height/2 + 10);
+      this.ctx.fillText(failureInfo.detail, this.logicalWidth/2, this.logicalHeight/2 + 10);
       
       // 重启提示和成绩
       this.ctx.fillStyle = '#FFFFFF';
       this.ctx.font = '16px Arial';
-      this.ctx.fillText('点击屏幕立即重试 或 3秒后自动重新开始', this.canvas.width/2, this.canvas.height/2 + 40);
+      this.ctx.fillText('点击屏幕立即重试 或 3秒后自动重新开始', this.logicalWidth/2, this.logicalHeight/2 + 40);
       // 显示倒数层数：实际第1层显示为第100层
       const deepestDisplayLayer = this.game.gameData.maxLayer - this.game.gameData.currentLayer + 1;
-      this.ctx.fillText(`最深到达第 ${deepestDisplayLayer} 层`, this.canvas.width/2, this.canvas.height/2 + 70);
+      this.ctx.fillText(`最深到达第 ${deepestDisplayLayer} 层`, this.logicalWidth/2, this.logicalHeight/2 + 70);
     }
     
     // 游戏完成提示
     if (this.game.currentState === 'level_complete') {
       this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      this.ctx.fillRect(0, 0, this.logicalWidth, this.logicalHeight);
       
       this.ctx.fillStyle = '#FFD700';
       this.ctx.font = '28px Arial';
       this.ctx.textAlign = 'center';
-      this.ctx.fillText('✨ 下凡成功！✨', this.canvas.width/2, this.canvas.height/2 - 40);
+      this.ctx.fillText('✨ 下凡成功！✨', this.logicalWidth/2, this.logicalHeight/2 - 40);
       this.ctx.font = '18px Arial';
       this.ctx.fillStyle = '#FFFFFF';
-      this.ctx.fillText('天使已成功穿越百层天界抵达人间', this.canvas.width/2, this.canvas.height/2 - 5);
-      this.ctx.fillText('可以开始履行救赎众生的神圣使命了！', this.canvas.width/2, this.canvas.height/2 + 20);
+      this.ctx.fillText('天使已成功穿越百层天界抵达人间', this.logicalWidth/2, this.logicalHeight/2 - 5);
+      this.ctx.fillText('可以开始履行救赎众生的神圣使命了！', this.logicalWidth/2, this.logicalHeight/2 + 20);
       this.ctx.font = '14px Arial';
       this.ctx.fillStyle = '#CCCCCC';
-      this.ctx.fillText('点击屏幕重新体验下凡之旅', this.canvas.width/2, this.canvas.height/2 + 60);
+      this.ctx.fillText('点击屏幕重新体验下凡之旅', this.logicalWidth/2, this.logicalHeight/2 + 60);
     }
   }
 

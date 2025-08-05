@@ -3,7 +3,7 @@
  * @description 新手指引遮罩层 - 适配曲面屏和刘海屏
  */
 
-import { SAFE_AREA, SAFE_AREA_INSETS, IS_NOTCH_SCREEN, DEBUG_INFO } from '../../render.js';
+import { SAFE_AREA, SAFE_AREA_INSETS, IS_NOTCH_SCREEN, DEBUG_INFO, SCREEN_WIDTH, SCREEN_HEIGHT } from '../../render.js';
 import { resourceManager } from '../../runtime/resource-manager.js';
 
 /**
@@ -12,6 +12,9 @@ import { resourceManager } from '../../runtime/resource-manager.js';
 export default class TutorialOverlay {
   constructor(canvas) {
     this.canvas = canvas;
+    // 使用逻辑尺寸进行UI计算
+    this.logicalWidth = SCREEN_WIDTH;
+    this.logicalHeight = SCREEN_HEIGHT;
     // 是否显示状态
     this.isVisible = true;
     this.isComplete = false;
@@ -71,8 +74,8 @@ export default class TutorialOverlay {
   generateBackgroundParticles() {
     const particles = [];
     const count = 30;
-    const width = this.canvas.width;
-    const height = this.canvas.height;
+    const width = this.logicalWidth;
+    const height = this.logicalHeight;
     
     // 考虑安全区域的粒子生成范围
     const safeLeft = Math.max(SAFE_AREA_INSETS.left, 20);
@@ -184,7 +187,7 @@ export default class TutorialOverlay {
     
     // 第二层：绘制开始界面图像（在背景覆盖之上）
     if (this.imageLoaded && this.startImage) {
-      this.renderStartImage(ctx, this.canvas.width, this.canvas.height);
+      this.renderStartImage(ctx, this.logicalWidth, this.logicalHeight);
     }
     
     // 第三层：绘制背景粒子装饰
@@ -192,10 +195,10 @@ export default class TutorialOverlay {
     
     // 第四层：绘制后备内容（如果图像未加载）
     if (!this.imageLoaded || !this.startImage) {
-      this.renderFallbackContent(ctx, this.canvas.width, this.canvas.height);
+      this.renderFallbackContent(ctx, this.logicalWidth, this.logicalHeight);
     } else {
       // 图像已加载时，仍然显示闪烁的"点击开始"文字
-      this.renderStartPrompt(ctx, this.canvas.width, this.canvas.height);
+      this.renderStartPrompt(ctx, this.logicalWidth, this.logicalHeight);
     }
     
     // 顶层：绘制调试覆盖层（如果启用）
@@ -208,8 +211,8 @@ export default class TutorialOverlay {
    * 渲染背景 - 确保完全覆盖整个屏幕包括刘海区域
    */
   renderBackground(ctx) {
-    const width = this.canvas.width;
-    const height = this.canvas.height;
+    const width = this.logicalWidth;
+    const height = this.logicalHeight;
     
     // 扩展绘制区域，确保完全覆盖包括边缘
     const extraMargin = 50; // 额外边距确保完全覆盖
@@ -390,8 +393,8 @@ export default class TutorialOverlay {
   renderDebugOverlay(ctx) {
     if (!this.debugMode) return;
     
-    const width = this.canvas.width;
-    const height = this.canvas.height;
+    const width = this.logicalWidth;
+    const height = this.logicalHeight;
     
     ctx.save();
     ctx.globalAlpha = 0.8;

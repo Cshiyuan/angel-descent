@@ -13,6 +13,7 @@ import { resourceManager } from '../runtime/resource-manager.js';
 import Music from '../runtime/music.js';
 import RenderManager from './managers/render-manager.js';
 import EffectsManager from './managers/effects-manager.js';
+import { SCREEN_WIDTH, SCREEN_HEIGHT } from '../render.js';
 
 // 天使下凡一百层游戏特有的游戏状态
 export const GAME_STATES = {
@@ -31,6 +32,11 @@ export default class AngelDescentGame {
   constructor(canvas) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
+    
+    // 逻辑尺寸（用于游戏逻辑计算）
+    // Canvas物理尺寸已乘以pixelRatio，但游戏逻辑需要使用逻辑尺寸
+    this.logicalWidth = SCREEN_WIDTH;
+    this.logicalHeight = SCREEN_HEIGHT;
     
     // 游戏状态
     this.currentState = GAME_STATES.TUTORIAL;
@@ -219,8 +225,8 @@ export default class AngelDescentGame {
       };
       
       // 设置摄像机初始位置，配合新的视野设置
-      const initialScreenCenterX = this.canvas.width / 2;
-      const initialScreenOffsetY = this.canvas.height * 0.25;
+      const initialScreenCenterX = this.logicalWidth / 2;
+      const initialScreenOffsetY = this.logicalHeight * 0.25;
       this.camera.moveTo(187.5 - initialScreenCenterX, 100 - initialScreenOffsetY); // 根据新的25%偏移调整
       
       // 重置游戏数据
@@ -575,7 +581,7 @@ export default class AngelDescentGame {
     
     // 生成合理的初始层数，避免生成过多会被立即清理的平台
     // 基于屏幕高度计算合理的初始范围
-    const screenHeights = Math.ceil(this.canvas.height / this.layerHeight);
+    const screenHeights = Math.ceil(this.logicalHeight / this.layerHeight);
     const initialLayerCount = Math.max(5, screenHeights + 3); // 至少5层，或屏幕高度+3层
     const initialLayers = this.levelGenerator.generateMultipleLayers(1, initialLayerCount);
     
@@ -709,7 +715,7 @@ export default class AngelDescentGame {
     
     const touch = e.touches[0];
     const x = touch.clientX;
-    const screenWidth = this.canvas.width;
+    const screenWidth = this.logicalWidth;
     
     // 简单的左右控制：左半屏向左，右半屏向右
     if (x < screenWidth / 2) {
@@ -942,11 +948,11 @@ export default class AngelDescentGame {
    * 更新平台
    */
   updatePlatforms(deltaTime) {
-    const cameraY = this.player.y - this.canvas.height / 2;
+    const cameraY = this.player.y - this.logicalHeight / 2;
     // 大幅增加清理距离，确保有足够的缓冲区域
     // 新的生成范围：前方8层+后方3层 = 11层 * 600px = 6600px
     // 清理距离需要更大，使用10倍屏幕高度提供充足的安全边距
-    const cleanupDistance = this.canvas.height * 10; // 增加到10倍，提供更大的缓冲区域
+    const cleanupDistance = this.logicalHeight * 10; // 增加到10倍，提供更大的缓冲区域
     
     // 清理参数调试日志已移除，避免在帧更新中频繁检查随机数
     // 如需调试清理参数，可在控制台手动调用相关方法
@@ -1004,7 +1010,7 @@ export default class AngelDescentGame {
     
     // 平台在相机下方很远的距离时也清理（防止玩家向上移动时的内存泄漏）
     const platformTopY = platform.y - platform.height / 2;
-    const isBelowCamera = platformTopY > cameraY + this.canvas.height + cleanupDistance;
+    const isBelowCamera = platformTopY > cameraY + this.logicalHeight + cleanupDistance;
     
     return isAboveCamera || isBelowCamera;
   }
@@ -1013,8 +1019,8 @@ export default class AngelDescentGame {
    * 更新生命果实
    */
   updateLifeFruits(deltaTime) {
-    const cameraY = this.player.y - this.canvas.height / 2;
-    const cleanupDistance = this.canvas.height * 20; // 生命果实保持更长距离，给玩家回去收集的机会
+    const cameraY = this.player.y - this.logicalHeight / 2;
+    const cleanupDistance = this.logicalHeight * 20; // 生命果实保持更长距离，给玩家回去收集的机会
     
     
     for (let i = this.lifeFruits.length - 1; i >= 0; i--) {
@@ -1050,7 +1056,7 @@ export default class AngelDescentGame {
     
     // 对象在相机下方很远的距离时也清理
     const objectTopY = object.y - (object.height || 0) / 2;
-    const isBelowCamera = objectTopY > cameraY + this.canvas.height + cleanupDistance;
+    const isBelowCamera = objectTopY > cameraY + this.logicalHeight + cleanupDistance;
     
     return isAboveCamera || isBelowCamera;
   }
@@ -1063,8 +1069,8 @@ export default class AngelDescentGame {
     this.camera.smoothing = 0.1; // 增加跟随响应速度，几乎实时跟随
     
     // 计算屏幕偏移，让玩家显示在屏幕上部更高位置，大幅增加下方视野
-    const screenCenterX = this.canvas.width / 2;
-    const screenOffsetY = this.canvas.height * 0.25; // 玩家位于屏幕上部25%位置，提供75%下方视野（原35%改为25%）
+    const screenCenterX = this.logicalWidth / 2;
+    const screenOffsetY = this.logicalHeight * 0.25; // 玩家位于屏幕上部25%位置，提供75%下方视野（原35%改为25%）
     
     // 摄像机目标位置 = 玩家位置 - 屏幕偏移
     const targetX = this.player.x - screenCenterX;
@@ -1192,7 +1198,7 @@ export default class AngelDescentGame {
     
     // 简化的向前生成逻辑
     const playerLayer = Math.max(1, Math.ceil(this.player.y / this.layerHeight));
-    const screenHeights = Math.ceil(this.canvas.height / this.layerHeight);
+    const screenHeights = Math.ceil(this.logicalHeight / this.layerHeight);
     
     // 向前生成足够的层数
     const aheadLayers = Math.max(8, screenHeights * 2);
@@ -1356,7 +1362,7 @@ export default class AngelDescentGame {
     // 如果在新手指引状态，只渲染指引
     if (this.currentState === GAME_STATES.TUTORIAL) {
       // 清空画布
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      this.ctx.clearRect(0, 0, this.logicalWidth, this.logicalHeight);
 
       // 绘制基本背景
       this.renderManager.renderBackground();

@@ -8,6 +8,7 @@
 
 import { INPUT_EVENTS } from './input-events.js';
 import { GESTURE_TYPES, SWIPE_DIRECTIONS } from './gesture-types.js';
+import { PIXEL_RATIO } from '../render.js';
 
 /**
  * 触摸点数据结构
@@ -342,10 +343,11 @@ export default class InputSystem {
    * @returns {Object} 坐标 {x, y}
    */
   getTouchCoordinates(touch) {
-    // 微信小游戏中，触摸坐标直接使用 clientX/clientY
+    // 微信小游戏中，触摸坐标需要适配Canvas缩放
+    // Canvas已设置scale(pixelRatio, pixelRatio)，所以触摸坐标需要除以pixelRatio
     return {
-      x: touch.clientX || 0,
-      y: touch.clientY || 0
+      x: (touch.clientX || 0) / PIXEL_RATIO,
+      y: (touch.clientY || 0) / PIXEL_RATIO
     };
   }
 

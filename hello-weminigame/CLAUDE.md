@@ -381,6 +381,103 @@ ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
 
 **原则**：优先考虑性能，通过创意的绘图技巧实现视觉效果，而不是依赖性能消耗大的阴影API。
 
+### 微信小游戏Canvas清晰度适配原则
+
+**重要**：微信Android端Canvas放缩策略变更后，必须正确适配Canvas清晰度以避免游戏元素位置错误和画面模糊问题。
+
+#### 问题背景
+
+2024年微信Android端调整了"在屏Canvas"的放缩策略，与iOS保持一致：
+- **变更前**：Canvas的width/height会自动放缩为物理像素，保持最清晰状态
+- **变更后**：需要手动设置 `canvas.width = screenWidth * pixelRatio` 来保持清晰度
+
+#### 核心适配原理
+
+游戏必须建立**三层坐标系统架构**：
+
+```
+物理像素层 (Canvas)    → canvas.width/height * pixelRatio
+     ↕ ctx.scale()
+逻辑像素层 (游戏逻辑)   → SCREEN_WIDTH/HEIGHT (游戏计算)
+     ↕ 触摸转换
+触摸事件层            → clientX/Y / pixelRatio
+```
+
+#### 必须实现的适配步骤
+
+1. **Canvas物理尺寸设置**：
+```javascript
+// render.js
+const pixelRatio = windowInfo.pixelRatio || 1;
+canvas.width = windowInfo.screenWidth * pixelRatio;   // 物理像素
+canvas.height = windowInfo.screenHeight * pixelRatio; // 物理像素
+```
+
+2. **渲染上下文缩放**：
+```javascript
+// render.js
+const ctx = canvas.getContext('2d');
+ctx.scale(pixelRatio, pixelRatio);  // 逻辑坐标自动映射到物理像素
+```
+
+3. **触摸坐标转换**：
+```javascript
+// input-system.js
+getTouchCoordinates(touch) {
+  return {
+    x: (touch.clientX || 0) / PIXEL_RATIO,  // 转换为逻辑坐标
+    y: (touch.clientY || 0) / PIXEL_RATIO   // 转换为逻辑坐标
+  };
+}
+```
+
+4. **逻辑尺寸系统**：
+```javascript
+// 在所有游戏类中使用逻辑尺寸，而不是canvas物理尺寸
+this.logicalWidth = SCREEN_WIDTH;   // 导入自render.js
+this.logicalHeight = SCREEN_HEIGHT; // 导入自render.js
+
+// ❌ 错误：使用物理像素进行逻辑计算
+const centerX = this.canvas.width / 2;
+
+// ✅ 正确：使用逻辑像素进行逻辑计算
+const centerX = this.logicalWidth / 2;
+```
+
+#### 关键注意事项
+
+1. **坐标系统一致性**：
+   - **渲染计算**：使用逻辑坐标，通过ctx.scale()自动缩放
+   - **游戏逻辑**：使用逻辑坐标进行位置、碰撞、摄像机计算
+   - **触摸事件**：将物理坐标转换为逻辑坐标
+   - **clearRect等Canvas API**：使用逻辑尺寸（因为已设置scale）
+
+2. **常见错误避免**：
+   - **错误**：游戏逻辑直接使用`canvas.width/height`（现在是物理像素）
+   - **正确**：游戏逻辑使用`SCREEN_WIDTH/HEIGHT`（逻辑像素）
+   - **错误**：触摸坐标直接使用`clientX/Y`
+   - **正确**：触摸坐标除以`pixelRatio`转换为逻辑坐标
+
+3. **全面替换清单**：
+   - 摄像机位置计算：`canvas.width/height` → `logicalWidth/Height`
+   - 清理距离计算：`canvas.height * factor` → `logicalHeight * factor`
+   - UI居中布局：`canvas.width/2` → `logicalWidth/2`
+   - 粒子边界检查：使用逻辑尺寸
+   - 背景渲染区域：使用逻辑尺寸
+
+#### 向后兼容性
+
+此适配方案在老版本微信上也能正常运行，具有完全的向后兼容性。
+
+#### 测试验证
+
+1. **清晰度测试**：文字和图像应该清晰锐利
+2. **触摸响应测试**：按钮点击和手势识别准确
+3. **布局一致性测试**：UI元素和游戏对象位置正确
+4. **多设备测试**：在不同像素比设备上验证效果
+
+**原则**：建立统一的坐标系统架构，确保渲染清晰度与交互准确性并存。
+
 ## 天使下凡一百层游戏使用说明
 
 ### 启动游戏
@@ -476,3 +573,55 @@ grep -r "清理\|cleanup\|clean" --include="*.js"
 - **对象池清理**：独立的 `cleanupObjectPools()` 方法
 
 **原则**：每种游戏对象都应该有且仅有一个清理入口点。
+
+### Canvas清晰度适配的坐标系统问题
+
+**重要教训**：微信小游戏Canvas清晰度适配不仅仅是设置Canvas尺寸，更重要的是建立统一的坐标系统架构。
+
+#### 问题案例：Canvas缩放后游戏元素位置错误
+
+**症状**：
+- 适配Canvas清晰度后，游戏元素位置完全错乱
+- 触摸事件响应位置不准确
+- UI布局和游戏对象显示位置不匹配
+
+**根本原因**：
+坐标系统不匹配，存在三个不同的坐标系统：
+1. **Canvas物理尺寸**：`canvas.width/height * pixelRatio`（物理像素）
+2. **渲染坐标系**：通过`ctx.scale(pixelRatio)`设置了缩放
+3. **触摸坐标系**：`clientX/Y`基于物理像素，但游戏逻辑需要逻辑像素
+4. **游戏逻辑坐标**：仍在使用`canvas.width/height`进行计算
+
+#### 解决方案架构
+
+1. **建立三层坐标系统**：
+   - **物理像素层**：Canvas实际尺寸，用于硬件渲染
+   - **逻辑像素层**：游戏逻辑计算，与屏幕分辨率一致
+   - **触摸事件层**：转换物理坐标为逻辑坐标
+
+2. **统一坐标转换规则**：
+   - Canvas → 逻辑：通过`ctx.scale()`自动处理
+   - 触摸 → 逻辑：除以`pixelRatio`进行转换
+   - 游戏逻辑：完全使用逻辑尺寸进行计算
+
+3. **全面替换canvas尺寸引用**：
+   - 摄像机、UI布局、碰撞检测等全部使用逻辑尺寸
+   - 避免在游戏逻辑中直接使用`canvas.width/height`
+
+#### 预防措施
+
+**在进行Canvas相关修改时，务必检查：**
+1. 是否建立了完整的坐标系统架构
+2. 触摸事件坐标转换是否正确
+3. 游戏逻辑是否完全使用逻辑坐标
+4. 渲染计算是否与坐标系统匹配
+
+**搜索潜在坐标系统问题：**
+```bash
+# 搜索直接使用canvas尺寸的地方
+grep -r "canvas\.width\|canvas\.height" --include="*.js"
+# 搜索触摸坐标处理
+grep -r "clientX\|clientY" --include="*.js"
+```
+
+**原则**：坐标系统必须在整个应用中保持一致性，任何坐标相关的修改都需要考虑全局影响。
