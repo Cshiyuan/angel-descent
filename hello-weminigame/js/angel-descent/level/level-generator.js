@@ -351,7 +351,8 @@ export default class LevelGenerator {
    */
   generatePlatforms(layerNum, config, difficulty) {
     const platforms = [];
-    const layerY = layerNum * this.layerHeight;
+    // 调整层坐标计算：第1层从400开始，后续层在此基础上递增
+    const layerY = 400 + (layerNum - 1) * this.layerHeight;
     const platformCount = Math.floor(difficulty.platformCount);
     
     // 计算平台放置区域
