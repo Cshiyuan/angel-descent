@@ -7,11 +7,11 @@ import Sprite from '../core/sprite.js';
 import AnimationManager, { TRANSITION_MODES } from '../core/animation-manager.js';
 import { LOOP_MODES } from '../core/animation.js';
 
-// 下降伤害阈值常量 (缩减距离，更严格)
+// 下降伤害阈值常量 (极严格设置)
 const FALL_DAMAGE_THRESHOLDS = {
-  LIGHT: 400,    // 约2/3层 - 扣1个生命
-  MEDIUM: 800,   // 约1.3层 - 扣2个生命  
-  FATAL: 1200    // 约2层 - 扣3个生命（死亡）
+  LIGHT: 250,    // 约0.4层 - 扣1个生命
+  MEDIUM: 500,   // 约0.8层 - 扣2个生命  
+  FATAL: 750     // 约1.25层 - 扣3个生命（死亡）
 };
 
 /**

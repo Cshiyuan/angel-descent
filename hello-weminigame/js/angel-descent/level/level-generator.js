@@ -12,7 +12,7 @@
  * - 可重现性：支持种子系统，便于调试和测试
  * 
  * 生成算法核心：
- * 1. 分层主题系统：按25层为单位划分不同主题区域
+ * 1. 分层主题系统：朝霞天界10层，其他主题25层为单位划分不同主题区域
  * 2. 难度渐进算法：基于数学函数的平滑难度增长
  * 3. 平台分布算法：空间分析确保平台的可达性和挑战性
  * 4. 类型权重系统：根据主题和难度动态调整平台类型概率
@@ -34,7 +34,7 @@ import LifeFruit from '../entities/life-fruit.js';
 /**
  * 天界主题枚举
  * 
- * 定义四个渐进式主题区域，每个主题对应25层关卡，
+ * 定义四个渐进式主题区域，朝霞天界10层，其他主题25层关卡，
  * 形成完整的100层天界体系。主题设计遵循从温和到极端的难度梯度。
  * 
  * 主题设计哲学：
@@ -44,8 +44,8 @@ import LifeFruit from '../entities/life-fruit.js';
  * - EARTH（凡间边界）：终极区域，所有平台类型混合，最高难度
  */
 export const REALM_THEMES = {
-  DAWN: 'dawn',        // 朝霞天界 (1-25层) - 新手友好，温暖色调
-  CLOUD: 'cloud',      // 云海天界 (26-50层) - 滑动机制，冷色调
+  DAWN: 'dawn',        // 朝霞天界 (1-10层) - 新手友好，温暖色调
+  CLOUD: 'cloud',      // 云海天界 (11-50层) - 滑动机制，冷色调
   THUNDER: 'thunder',  // 雷音天界 (51-75层) - 动态元素，紫色调
   EARTH: 'earth'       // 凡间边界 (76-100层) - 极限挑战，暗色调
 };
@@ -153,7 +153,7 @@ export default class LevelGenerator {
     return {
       [REALM_THEMES.DAWN]: {
         name: '朝霞天界',
-        layers: [1, 25],
+        layers: [1, 10],
         primaryPlatforms: [PLATFORM_TYPES.NORMAL, PLATFORM_TYPES.FRAGILE],
         specialPlatforms: [PLATFORM_TYPES.DISAPPEARING, PLATFORM_TYPES.MOVING, PLATFORM_TYPES.DANGEROUS],
         hazardDensity: 0.1,
@@ -166,7 +166,7 @@ export default class LevelGenerator {
       },
       [REALM_THEMES.CLOUD]: {
         name: '云海天界',
-        layers: [26, 50],
+        layers: [11, 50],
         primaryPlatforms: [PLATFORM_TYPES.NORMAL, PLATFORM_TYPES.ICE],
         specialPlatforms: [PLATFORM_TYPES.MOVING, PLATFORM_TYPES.FRAGILE, PLATFORM_TYPES.DANGEROUS],
         hazardDensity: 0.15,
@@ -250,7 +250,7 @@ export default class LevelGenerator {
    * 获取层数对应的主题
    */
   getThemeForLayer(layerNum) {
-    if (layerNum <= 25) return REALM_THEMES.DAWN;
+    if (layerNum <= 10) return REALM_THEMES.DAWN;
     if (layerNum <= 50) return REALM_THEMES.CLOUD;
     if (layerNum <= 75) return REALM_THEMES.THUNDER;
     return REALM_THEMES.EARTH;
@@ -667,12 +667,12 @@ export default class LevelGenerator {
     const lifeFruits = [];
     
     // 生命果实生成概率基于层数：
-    // - 前25层：较高概率（40%），帮助新手积累生命  
-    // - 26-50层：中等概率（35%），保持平衡
+    // - 前10层：较高概率（40%），帮助新手积累生命  
+    // - 11-50层：中等概率（35%），保持平衡
     // - 51-75层：较低概率（30%），增加挑战
     // - 76-100层：稀有概率（25%），高难度区域
     let baseSpawnChance;
-    if (layerNum <= 25) {
+    if (layerNum <= 10) {
       baseSpawnChance = 0.40; // 40%概率（提高后）
     } else if (layerNum <= 50) {
       baseSpawnChance = 0.35; // 35%概率（提高后）

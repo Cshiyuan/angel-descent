@@ -525,10 +525,10 @@ export default class AngelDescentGame {
     const layer = this.gameData.currentLayer;
     
     // 根据游戏层数和主题映射选择背景
-    if (layer <= 25) {
-      return 'dawn';     // 1-25层：朝霞天界，使用朝霞背景
+    if (layer <= 10) {
+      return 'dawn';     // 1-10层：朝霞天界，使用朝霞背景
     } else if (layer <= 50) {
-      return 'cloud';    // 26-50层：云海天界，使用云海背景
+      return 'cloud';    // 11-50层：云海天界，使用云海背景
     } else if (layer <= 75) {
       return 'thunder';  // 51-75层：雷音天界，使用雷电背景
     } else {
@@ -630,7 +630,7 @@ export default class AngelDescentGame {
    * 根据层数获取主题颜色（现在由Platform类处理）
    */
   getThemeColor(layerNum) {
-    if (layerNum <= 25) return '#FFB74D'; // 朝霞天界 - 温暖的金色
+    if (layerNum <= 10) return '#FFB74D'; // 朝霞天界 - 温暖的金色
     if (layerNum <= 50) return '#81D4FA'; // 云海天界 - 清澈的天蓝色
     if (layerNum <= 75) return '#CE93D8'; // 雷音天界 - 柔和的紫色
     return '#8D6E63'; // 凡间边界 - 大地色
