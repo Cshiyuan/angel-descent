@@ -12,6 +12,73 @@
 
 </div>
 
+## 📱 立即体验
+
+<div align="center">
+
+### 扫码体验游戏
+
+<img src="docs/images/qrcode.jpg" width="300" alt="游戏二维码">
+
+*微信扫一扫，立即开始你的天使下凡之旅*
+
+</div>
+
+## 🎬 游戏预览
+
+<div align="center">
+
+### 开始界面
+<img src="docs/images/game-start.jpg" width="600" alt="游戏开始界面">
+
+### 四大天界主题
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="docs/images/scene-dawn.jpg" width="280" alt="朝霞天界"><br>
+      <b>朝霞天界</b><br>
+      温暖色调 · 1-25层
+    </td>
+    <td align="center">
+      <img src="docs/images/scene-cloud.jpg" width="280" alt="云海天界"><br>
+      <b>云海天界</b><br>
+      清冷色调 · 26-50层
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="docs/images/scene-thunder.jpg" width="280" alt="雷音天界"><br>
+      <b>雷音天界</b><br>
+      神秘紫色 · 51-75层
+    </td>
+    <td align="center">
+      <img src="docs/images/scene-earth.jpg" width="280" alt="凡间边界"><br>
+      <b>凡间边界</b><br>
+      大地暗色 · 76-100层
+    </td>
+  </tr>
+</table>
+
+### 游戏特性
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="docs/images/life-fruit.jpg" width="280" alt="生命果实"><br>
+      <b>生命果实系统</b><br>
+      收集果实恢复生命值
+    </td>
+    <td align="center">
+      <img src="docs/images/frozen.jpg" width="280" alt="冰冻效果"><br>
+      <b>特殊状态效果</b><br>
+      冰块平台滑溜难控
+    </td>
+  </tr>
+</table>
+
+</div>
+
 ## ✨ 游戏特色
 
 - 🌅 **四大天界主题**：朝霞天界、云海天界、雷音天界、凡间边界四种不同风格的游戏区域

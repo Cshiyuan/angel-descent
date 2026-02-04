@@ -12,6 +12,73 @@ English | [简体中文](README.md)
 
 </div>
 
+## 📱 Try Now
+
+<div align="center">
+
+### Scan to Play
+
+<img src="docs/images/qrcode.jpg" width="300" alt="Game QR Code">
+
+*Scan with WeChat to start your Angel Descent journey*
+
+</div>
+
+## 🎬 Game Preview
+
+<div align="center">
+
+### Start Screen
+<img src="docs/images/game-start.jpg" width="600" alt="Game Start Screen">
+
+### Four Celestial Themes
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="docs/images/scene-dawn.jpg" width="280" alt="Dawn Heaven"><br>
+      <b>Dawn Heaven</b><br>
+      Warm Tones · Floors 1-25
+    </td>
+    <td align="center">
+      <img src="docs/images/scene-cloud.jpg" width="280" alt="Cloud Heaven"><br>
+      <b>Cloud Heaven</b><br>
+      Cool Tones · Floors 26-50
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="docs/images/scene-thunder.jpg" width="280" alt="Thunder Heaven"><br>
+      <b>Thunder Heaven</b><br>
+      Mysterious Purple · Floors 51-75
+    </td>
+    <td align="center">
+      <img src="docs/images/scene-earth.jpg" width="280" alt="Earthly Boundary"><br>
+      <b>Earthly Boundary</b><br>
+      Dark Earth Tones · Floors 76-100
+    </td>
+  </tr>
+</table>
+
+### Game Features
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="docs/images/life-fruit.jpg" width="280" alt="Life Fruit"><br>
+      <b>Life Fruit System</b><br>
+      Collect fruits to restore health
+    </td>
+    <td align="center">
+      <img src="docs/images/frozen.jpg" width="280" alt="Frozen Effect"><br>
+      <b>Special Status Effects</b><br>
+      Ice platforms are slippery
+    </td>
+  </tr>
+</table>
+
+</div>
+
 ## ✨ Features
 
 - 🌅 **Four Celestial Themes**: Dawn Heaven, Cloud Heaven, Thunder Heaven, and Earthly Boundary with distinct visual styles
