@@ -1,0 +1,55 @@
+# 系统文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*~
+
+# 微信开发者工具
+project.private.config.json
+.tea/
+
+# 敏感配置文件（包含真实 appid）
+hello-weminigame/project.config.json
+
+# 日志文件
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 临时文件
+*.tmp
+*.swp
+*.bak
+*.cache
+
+# 编译输出
+dist/
+build/
+*.min.js
+
+# IDE 配置
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# 私人资料（不应开源）
+备案资料/
+过程资料/
+文档/
+
+# 营销和内部文档（不应开源）
+hello-weminigame/AI原生开发游戏媒体引流方案.md
+hello-weminigame/小红书引流文章完整方案.md
+hello-weminigame/GPT4_IMAGE_GENERATION_PROMPTS.md
+hello-weminigame/GPT4_中文图像生成命令.md
+
+# Node modules (如果未来使用)
+node_modules/
+package-lock.json
+yarn.lock

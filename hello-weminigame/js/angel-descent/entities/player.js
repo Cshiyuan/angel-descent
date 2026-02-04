@@ -7,12 +7,6 @@ import Sprite from '../core/sprite.js';
 import AnimationManager, { TRANSITION_MODES } from '../core/animation-manager.js';
 import { LOOP_MODES } from '../core/animation.js';
 
-// 下降伤害阈值常量 (极严格设置)
-const FALL_DAMAGE_THRESHOLDS = {
-  LIGHT: 250,    // 约0.4层 - 扣1个生命
-  MEDIUM: 500,   // 约0.8层 - 扣2个生命  
-  FATAL: 750     // 约1.25层 - 扣3个生命（死亡）
-};
 
 /**
  * 玩家类
@@ -39,11 +33,6 @@ export default class Player extends Sprite {
     this.fallDistance = 0;
     this.totalDistance = 0;
     
-    // 下降距离伤害系统
-    this.fallStartY = 0;           // 开始下降的Y坐标
-    this.isFalling = false;        // 是否处于下降状态
-    this.lastPlatformY = 0;        // 上次着陆平台的Y坐标
-    this.continuousFallDistance = 0; // 连续下降距离
     
     // 物理属性
     this.gravity = 980; // 重力加速度 (像素/秒²)
@@ -334,8 +323,6 @@ export default class Player extends Sprite {
     this.x += this.velocity.x * deltaTime;
     this.y += this.velocity.y * deltaTime;
     
-    // 下降距离跟踪逻辑
-    this.updateFallTracking(oldY);
     
     // 边界检查（左右）- 适度扩展移动范围，创建合理的游戏世界
     const screenWidth = 375;
@@ -369,35 +356,6 @@ export default class Player extends Sprite {
     this.onGround = false;
   }
 
-  /**
-   * 更新下降跟踪
-   * @param {number} oldY - 更新前的Y坐标
-   */
-  updateFallTracking(oldY) {
-    const isMovingDown = this.velocity.y > 0;
-    const hasMovedDown = this.y > oldY;
-    
-    // 开始下降跟踪
-    if (!this.isFalling && isMovingDown && !this.onGround) {
-      this.isFalling = true;
-      this.fallStartY = oldY; // 使用上一帧的位置作为起始点
-      this.continuousFallDistance = 0;
-    }
-    
-    // 更新连续下降距离
-    if (this.isFalling && hasMovedDown) {
-      this.continuousFallDistance += this.y - oldY;
-    }
-    
-    // 重置下降跟踪（如果开始上升或着陆）
-    if (this.isFalling && (!isMovingDown || this.onGround)) {
-      // 在着陆时会被landOnPlatform方法处理，这里只处理上升情况
-      if (!this.onGround) {
-        this.isFalling = false;
-        this.continuousFallDistance = 0;
-      }
-    }
-  }
 
   /**
    * 更新状态
@@ -687,16 +645,6 @@ export default class Player extends Sprite {
                          this.velocity.y > 50 && // 增加最小速度要求
                          (currentTime - this.lastLandingSoundTime) > this.landingSoundCooldown;
     
-    // 检查下降距离伤害（在弹跳平台上不造成伤害）
-    if (this.isFalling && platform.platformType !== 'bounce' && isRealLanding) {
-      const fallDistance = this.continuousFallDistance;
-      this.checkFallDamage(fallDistance);
-    }
-    
-    // 重置下降跟踪状态
-    this.isFalling = false;
-    this.continuousFallDistance = 0;
-    this.lastPlatformY = this.y;
     
     this.y = platform.y - platform.height/2 - this.height/2;
     
@@ -716,121 +664,9 @@ export default class Player extends Sprite {
     }
   }
 
-  /**
-   * 检查下降距离伤害
-   * @param {number} fallDistance - 下降距离
-   */
-  checkFallDamage(fallDistance) {
-    // 如果处于无敌状态，不造成伤害
-    if (this.isInvulnerable || this.destroyed) {
-      return;
-    }
-    
-    // 计算伤害等级
-    const damageLevel = this.calculateFallDamage(fallDistance);
-    
-    if (damageLevel > 0) {
-      // 应用伤害
-      this.applyFallDamage(damageLevel, fallDistance);
-    }
-  }
 
-  /**
-   * 计算下降伤害等级
-   * @param {number} fallDistance - 下降距离
-   * @returns {number} 伤害等级 (0-3)
-   */
-  calculateFallDamage(fallDistance) {
-    if (fallDistance >= FALL_DAMAGE_THRESHOLDS.FATAL) {
-      return 3; // 致命伤害
-    } else if (fallDistance >= FALL_DAMAGE_THRESHOLDS.MEDIUM) {
-      return 2; // 中等伤害
-    } else if (fallDistance >= FALL_DAMAGE_THRESHOLDS.LIGHT) {
-      return 1; // 轻微伤害
-    }
-    return 0; // 无伤害
-  }
 
-  /**
-   * 应用下降伤害和特效
-   * @param {number} damageLevel - 伤害等级 (1-3)
-   * @param {number} fallDistance - 下降距离
-   */
-  applyFallDamage(damageLevel, fallDistance) {
-    // 扣减生命值
-    this.lives = Math.max(0, this.lives - damageLevel);
-    
-    // 设置无敌状态
-    this.isInvulnerable = true;
-    this.invulnerabilityTime = 2.0; // 2秒无敌时间
-    this.blinkTime = 0;
-    this.lastHitTime = Date.now();
-    
-    // 创建下降伤害特效
-    this.createFallDamageEffect(damageLevel, fallDistance);
-    
-    // 播放伤害音效
-    if (this.audioManager) {
-      this.audioManager.playAngelHurt();
-    }
-    
-    // 检查是否死亡
-    if (this.lives <= 0) {
-      this.die();
-    }
-  }
 
-  /**
-   * 创建下降伤害特效
-   * @param {number} damageLevel - 伤害等级 (1-3)
-   * @param {number} fallDistance - 下降距离
-   */
-  createFallDamageEffect(damageLevel, fallDistance) {
-    let effectColor, particleCount, shakeIntensity;
-    
-    // 根据伤害等级设置不同的特效参数
-    switch (damageLevel) {
-      case 1: // 轻微伤害
-        effectColor = '#FFFF00'; // 黄色警告
-        particleCount = 10;
-        shakeIntensity = 3;
-        break;
-      case 2: // 中等伤害
-        effectColor = '#FF8C00'; // 橙色严重
-        particleCount = 15;
-        shakeIntensity = 6;
-        break;
-      case 3: // 致命伤害
-        effectColor = '#FF0000'; // 红色致命
-        particleCount = 20;
-        shakeIntensity = 10;
-        break;
-      default:
-        return;
-    }
-    
-    // 创建下降伤害粒子特效
-    for (let i = 0; i < particleCount; i++) {
-      const angle = (Math.PI * 2 * i) / particleCount;
-      const speed = 100 + Math.random() * 80;
-      const particle = {
-        x: this.x,
-        y: this.y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 50, // 向上爆发
-        life: 1.0 + Math.random() * 0.5,
-        maxLife: 1.0 + Math.random() * 0.5,
-        alpha: 1,
-        color: effectColor,
-        size: 3 + Math.random() * 3,
-        type: 'fall_damage'
-      };
-      this.particles.push(particle);
-    }
-    
-    // 添加屏幕震动效果
-    this.shakeAmount = shakeIntensity;
-  }
 
   /**
    * 创建着陆效果
@@ -1175,11 +1011,6 @@ export default class Player extends Sprite {
     this.haloSystem.pulsePhase = 0;
     this.haloSystem.rotation = 0;
     
-    // 重置下降伤害相关属性
-    this.fallStartY = 0;
-    this.isFalling = false;
-    this.lastPlatformY = 0;
-    this.continuousFallDistance = 0;
     this.shakeAmount = 0;
     
   }

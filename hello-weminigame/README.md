@@ -1,43 +1,46 @@
 # 天使下凡一百层 - 微信小游戏
 
-微信小游戏平台的动作冒险游戏，玩家控制天使角色从天界下凡至人间。
+> 📢 **完整项目文档请查看：[../README.md](../README.md)**
+
+本目录为微信小游戏的主要代码和资源。
+
+## 快速开始
+
+1. 复制配置模板：
+```bash
+cp project.config.json.example project.config.json
+```
+
+2. 编辑 `project.config.json`，填入你的微信小游戏 AppID
+
+3. 使用微信开发者工具打开本目录
 
 ## 项目结构
 
 ```
-├── audio/                                     // 音频资源
-│   ├── angel_frozen.mp3                       // 天使冰冻音效
-│   ├── angel_hurt.mp3                         // 天使受伤音效
-│   ├── bgm.mp3                                // 背景音乐
-│   ├── life_fruit_collect.mp3                 // 生命果收集音效
-│   └── platform_*.mp3                         // 平台相关音效
-├── images/                                    // 图片资源
-│   ├── backgrounds/                           // 四大天界主题背景
-│   ├── character/angel/                       // 天使角色精灵
-│   └── platforms/                             // 各类型平台图像
-├── js/
-│   ├── angel-descent/                         // 天使下凡一百层游戏核心
-│   │   ├── angel-descent-game.js              // 游戏主控制器
-│   │   ├── core/                              // 核心系统（动画、精灵）
-│   │   ├── entities/                          // 游戏实体（玩家、平台等）
-│   │   ├── level/                             // 关卡生成系统
-│   │   └── ui/                                // 游戏UI系统
-│   ├── input/                                 // 输入系统
-│   ├── runtime/                               // 运行时系统（音频、资源）
-│   ├── app.js                                 // 应用主控制器
-│   ├── event-manager.js                       // 事件管理器
-│   └── render.js                              // Canvas渲染初始化
-├── game.js                                    // 游戏入口文件
-├── game.json                                  // 微信小游戏配置
-└── project.config.json                        // 项目配置
+├── audio/                    # 音频资源
+├── images/                   # 图像资源
+├── js/                       # 核心代码
+│   ├── angel-descent/       # 游戏主模块
+│   ├── input/               # 输入系统
+│   └── runtime/             # 运行时系统
+├── game.js                  # 入口文件
+├── game.json                # 游戏配置
+└── project.config.json      # 项目配置（需自行创建）
 ```
+
+## 重要文档
+
+- [游戏设计文档](GAME_DESIGN_DOCUMENT.md) - 详细的游戏设计规范
+- [开发指南](CLAUDE.md) - 开发注意事项和最佳实践
+- [微信小游戏文档](WEMINGAME.md) - 微信小游戏特性说明
 
 ## 游戏特色
 
-- **四大天界主题**：朝霞、云海、雷音、凡间四种不同风格的游戏区域
-- **平台跳跃机制**：多种类型平台提供丰富的游戏策略
-- **垂直下凡体验**：从天界到人间的100层下凡之旅
-- **触摸控制**：专为移动设备优化的触摸操作
+- 🌅 四大天界主题：朝霞、云海、雷音、凡间
+- 🎯 七种平台类型：普通、易碎、移动、消失、冰块、弹跳、危险
+- 📱 触摸控制：专为移动设备优化
+- ⚡ 性能优化：对象池、60fps 流畅运行
 
 
 
